@@ -1,0 +1,645 @@
+---
+title: "FosfoSinergyOnco"
+author: "Jeronimo Parra"
+date: "7/19/2023"
+output: html_document
+---
+
+
+#Fosfo WT. FC from max quant 
+
+
+
+```{r MQ, echo=T}
+
+
+#1. obtenemos counts
+
+CNvsOncoFosfoOnco <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_phosphorilome/Phosphoproteome_final_TT_NResOnco.csv", sep = ",")
+
+FCOnco  <- CNvsOncoFosfoOnco[,c("Fold_Change","P.Value")]
+
+rownames(FCOnco) <- CNvsOncoFosfoOnco$ï..protein_group
+
+
+#p.value filter and merge
+
+#FCOnco <- FCOnco[FCOnco$P.Value < 0.05, ]
+
+
+
+
+CNvsOncoFosfoIbru <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_phosphorilome/Phosphoproteome_final_TT_NResIbru.csv", sep = ",")
+
+FCIbru  <- CNvsOncoFosfoIbru[,c("Fold_Change","P.Value")]
+
+rownames(FCIbru) <- CNvsOncoFosfoIbru$ï..protein_group
+
+
+#FCIbru <- FCIbru[FCIbru$P.Value < 0.05, ]
+
+
+
+
+FCMerge <- merge(FCOnco,FCIbru, by=0)
+
+
+rownames(FCMerge) <- FCMerge$Row.names
+
+FCMerge <- FCMerge[,2:5]
+
+CNvsOncoFosfoCombo <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_phosphorilome/Phosphoproteome_final_TT_NResCombo.csv", sep = ",")
+
+FCCombo  <- CNvsOncoFosfoCombo[,c("Fold_Change","P.Value")]
+
+rownames(FCCombo) <- CNvsOncoFosfoCombo$ï..protein_group
+#FCCombo <- FCCombo[order(rownames(FCCombo) ,decreasing = T),]
+
+#FCCombo <- FCCombo[FCCombo$P.Value < 0.05, ]
+
+FCMerge <- merge(FCMerge,FCCombo, by=0)
+
+
+#FCMergeUp <- FCMerge[(FCMerge$Fold_Change.x > 0 & FCMerge$Fold_Change.y > 0) ,]
+
+
+
+
+
+#Aditivo: FC onco + FC ibru
+#Sinergia: Combinacion - aditivo
+
+
+FCMerge$FCaditivo <- FCMerge$Fold_Change.x + FCMerge$Fold_Change.y
+
+FCMerge$FCSinergia <- FCMerge$Fold_Change - FCMerge$FCaditivo
+
+
+#FCMerge2UP <- FCMerge[FCMerge$Fold_Change.x > 0 & FCMerge$Fold_Change.y > 0 &  FCMerge$Fold_Change>FCMerge$FCaditivo,]
+#FCMerge2DOWN <- FCMerge[FCMerge$Fold_Change.x < 0 & FCMerge$Fold_Change.y < 0 &  FCMerge$Fold_Change<FCMerge$FCaditivo,]
+
+
+
+
+
+FCMergeUp <- FCMerge[FCMerge$Fold_Change.x > 0 & FCMerge$Fold_Change.y > 0 ,]
+
+#FCMergeUp$geneNames <-  CNvsOncoFosfoCombo$gene_names[CNvsOncoFosfoCombo$ï..protein_group %in% FCMergeUp$Row.names] 
+
+
+FCMergeUp <- FCMergeUp[order(FCMergeUp$FCSinergia ,decreasing = F),]
+
+#FCMergeUpRanks <- FCMergeUp[,c("Row.names","FCSinergia")]
+
+#Cambio de fosfosites a proteina
+#FCMergeUpRanks$Row.names <- sub("_.*", "", FCMergeUpRanks$Row.names)
+
+
+#write.table(FCMergeUpRanks, file="/Users/jparra/Documents/Gael/BTKSinergy/final results/fosfoproteomics/FCMergeUpFosfoWTSinergy.rnk", sep="\t", row.names=F, col.names=F)
+
+#file:///C:/Users/jparra/gsea_home/output/may15/my_analysis.GseaPreranked.1723570600285/index.html
+
+#FCMergeUp$FCSinergia <-  (FCMergeUp$Fold_Change - FCMergeUp$Fold_Change.x) + (FCMergeUp$Fold_Change - FCMergeUp$Fold_Change.y)
+
+
+FCMergeDown <- FCMerge[FCMerge$Fold_Change.x < 0 & FCMerge$Fold_Change.y < 0 ,]
+
+#FCMergeDown$geneNames <-  CNvsOncoFosfoCombo$gene_names[CNvsOncoFosfoCombo$ï..protein_group %in% FCMergeDown$Row.names] 
+
+#FCMergeDown <- FCMergeDown[order(FCMergeDown$FCSinergia ,decreasing = T),]
+
+FCMergeDownRanks <- FCMergeDown[,c("Row.names","FCSinergia")]
+
+#Cambio de fosfosites a proteina
+FCMergeDownRanks$Row.names <- sub("_.*", "", FCMergeDownRanks$Row.names)
+
+
+#write.table(FCMergeDownRanks, file="/Users/jparra/Documents/Gael/BTKSinergy/final results/fosfoproteomics/FCMergeDownFosfoWTSinergy.rnk", sep="\t", row.names=F, col.names=F)
+
+#file:///C:/Users/jparra/gsea_home/output/may15/my_analysis.GseaPreranked.1723570905638/gsea_report_for_na_neg_1723570905638.html
+
+
+#countsOnco  <- CNvsOncoFosfoOnco[,c("ON123300.10","ON123300.2","ON123300.6","Control.1","Control.5","Control.9")]
+#rownames(countsOnco) <- CNvsOncoFosfoOnco$protein_group
+ 
+
+
+
+#probando a unir los down and up
+FCFull <- rbind(FCMergeUp,FCMergeDown)
+FCFull  <- FCFull[ ,c("Row.names","FCSinergia","P.Value")]
+FCFull <- FCFull[FCFull$P.Value < 0.1,]
+FCFull  <- FCFull[ ,c("Row.names","FCSinergia")]
+FCFull <- FCFull[order(FCFull$FCSinergia ,decreasing = T),]
+
+#FCFullRanks <- FCFull[,c("Row.names","FCSinergia")]
+
+#Cambio de fosfosites a proteina
+FCFull$Row.names <- sub("_.*", "", FCFull$Row.names)
+
+write.table(FCFull, file="/Users/jparra/Documents/Gael/BTKSinergy/final results/fosfoproteomics/FCFullFosfoWTSinergySigni.rnk", sep="\t", row.names=F, col.names=F)
+
+#file:///C:/Users/jparra/gsea_home/output/may15/my_analysis.GseaPreranked.1723629486923/index.html
+
+
+
+
+#Onco vs control.  SIGNI
+ranksOnco  <- CNvsOncoFosfoOnco[ ,c("protein","logFC","P.Value")]
+ranksOnco <- ranksOnco[ranksOnco$P.Value < 0.05,]
+ranksOnco  <- ranksOnco[ ,c("protein","logFC")]
+ranksOnco  <- ranksOnco[order(ranksOnco$logFC ,decreasing = T),]
+#write.table(ranksOnco, file="/Users/jparra/Documents/Gael/BTKSinergy/final results/fosfoproteomics/ranksOncoFosfoNRSigni.rnk", sep="\t", row.names=F, col.names=F)
+
+#file:///C:/Users/jparra/gsea_home/output/may15/my_analysis.GseaPreranked.1723573576478/index.html
+#MEJORES RESULTADOS
+
+
+
+
+#Ibru vs control.    SIGNI
+ranksIbru  <- CNvsOncoFosfoIbru[ ,c("protein","logFC","P.Value")]
+ranksIbru <- ranksIbru[ranksIbru$P.Value < 0.05,]
+ranksIbru  <- ranksIbru[ ,c("protein","logFC")]
+ranksIbru  <- ranksIbru[order(ranksIbru$logFC ,decreasing = T),]
+#write.table(ranksIbru, file="/Users/jparra/Documents/Gael/BTKSinergy/final results/fosfoproteomics/ranksIbruFosfoNRSigni.rnk", sep="\t", row.names=F, col.names=F)
+
+#file:///C:/Users/jparra/gsea_home/output/may15/my_analysis.GseaPreranked.1723634882241/index.html
+ 
+```
+
+
+
+
+#Fosfo resistant from max quant FC
+
+
+
+```{r MQ, echo=T}
+
+
+#1. obtenemos counts
+
+CNvsOncoFosfoOnco <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_phosphorilome/Phosphoproteome_final_TT_ResOnco.csv", sep = ",")
+
+FCOnco  <- CNvsOncoFosfoOnco[,c("Fold_Change","P.Value")]
+
+rownames(FCOnco) <- CNvsOncoFosfoOnco$ï..protein_group
+
+
+#p.value filter and merge
+
+#FCOnco <- FCOnco[FCOnco$P.Value < 0.05, ]
+
+
+
+
+CNvsOncoFosfoIbru <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_phosphorilome/Phosphoproteome_final_TT_ResIbru.csv", sep = ",")
+
+FCIbru  <- CNvsOncoFosfoIbru[,c("Fold_Change","P.Value")]
+
+rownames(FCIbru) <- CNvsOncoFosfoIbru$ï..protein_group
+
+FCMerge <- merge(FCOnco,FCIbru, by=0)
+
+
+rownames(FCMerge) <- FCMerge$Row.names
+
+FCMerge <- FCMerge[,2:5]
+
+CNvsOncoFosfoCombo <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_phosphorilome/Phosphoproteome_final_TT_ResCombo.csv", sep = ",")
+
+FCCombo  <- CNvsOncoFosfoCombo[,c("Fold_Change","P.Value")]
+
+rownames(FCCombo) <- CNvsOncoFosfoCombo$ï..protein_group
+#FCCombo <- FCCombo[order(rownames(FCCombo) ,decreasing = T),]
+
+#FCCombo <- FCCombo[FCCombo$P.Value < 0.05, ]
+
+FCMerge <- merge(FCMerge,FCCombo, by=0)
+
+
+#FCMergeUp <- FCMerge[(FCMerge$Fold_Change.x > 0 & FCMerge$Fold_Change.y > 0) ,]
+
+
+
+
+
+#Aditivo: FC onco + FC ibru
+#Sinergia: Combinacion - aditivo
+
+
+FCMerge$FCaditivo <- FCMerge$Fold_Change.x + FCMerge$Fold_Change.y
+
+FCMerge$FCSinergia <- FCMerge$Fold_Change - FCMerge$FCaditivo
+
+
+
+
+#RESULTADO IMPORTANTE!!!
+#A partir de los datos de FC obtenidos en maxquant busco en cuales el FC de la combinacion sea mayor que la suma de los tratamientos por separado.
+FCMergeUp <- FCMerge[FCMerge$Fold_Change.x > 0 & FCMerge$Fold_Change.y > 0 ,]
+
+
+
+FCMergeDown <- FCMerge[FCMerge$Fold_Change.x < 0 & FCMerge$Fold_Change.y < 0 ,]
+
+
+#probando a unir los down and up
+FCFull <- rbind(FCMergeUp,FCMergeDown)
+FCFull  <- FCFull[ ,c("Row.names","FCSinergia","P.Value")]
+FCFull <- FCFull[FCFull$P.Value < 0.1,]
+FCFull  <- FCFull[ ,c("Row.names","FCSinergia")]
+FCFull <- FCFull[order(FCFull$FCSinergia ,decreasing = T),]
+
+#FCFullRanks <- FCFull[,c("Row.names","FCSinergia")]
+
+#Cambio de fosfosites a proteina
+FCFull$Row.names <- sub("_.*", "", FCFull$Row.names)
+
+write.table(FCFull, file="/Users/jparra/Documents/Gael/BTKSinergy/final results/fosfoproteomics/FCFullFosfoUPNRSinergySigni.rnk", sep="\t", row.names=F, col.names=F)
+
+
+#file:///C:/Users/jparra/gsea_home/output/may15/my_analysis.GseaPreranked.1723633280453/index.html
+
+
+#Onco vs control.  SIGNI
+ranksOnco  <- CNvsOncoFosfoOnco[ ,c("protein","logFC","P.Value")]
+ranksOnco <- ranksOnco[ranksOnco$P.Value < 0.1,]
+ranksOnco  <- ranksOnco[ ,c("protein","logFC")]
+ranksOnco  <- ranksOnco[order(ranksOnco$logFC ,decreasing = T),]
+write.table(ranksOnco, file="/Users/jparra/Documents/Gael/BTKSinergy/final results/fosfoproteomics/ranksOncoFosfoRSigni.rnk", sep="\t", row.names=F, col.names=F)
+
+#file:///C:/Users/jparra/gsea_home/output/may15/my_analysis.GseaPreranked.1723634368606/index.html
+
+
+
+#Ibru vs control.    SIGNI
+ranksIbru  <- CNvsOncoFosfoIbru[ ,c("protein","logFC","P.Value")]
+ranksIbru <- ranksIbru[ranksIbru$P.Value < 0.1,]
+ranksIbru  <- ranksIbru[ ,c("protein","logFC")]
+ranksIbru  <- ranksIbru[order(ranksIbru$logFC ,decreasing = T),]
+write.table(ranksIbru, file="/Users/jparra/Documents/Gael/BTKSinergy/final results/fosfoproteomics/ranksIbruFosfoRSigni.rnk", sep="\t", row.names=F, col.names=F)
+
+#file:///C:/Users/jparra/gsea_home/output/may15/my_analysis.GseaPreranked.1723634680374/index.html
+
+
+#Para quedarnos solo con los sinergicos.
+#FCMerge2UP <- FCMerge[FCMerge$Fold_Change.x > 0 & FCMerge$Fold_Change.y > 0 &  FCMerge$Fold_Change>FCMerge$FCaditivo,]
+
+
+ #¿La mayoria de datos deberia de estar cerca LA MEDIDA DE ADITIVO Y COMBINACION?
+ 
+#buscar signatuira ps24 a ver si esta en proteoma total
+#list  100 proteinas total relacioandas
+ #multiplicidad 2, uno con probabilidad 0.51 otro 0.49.  mas probable este de 0.51 que otros dos de multiplicidad 2 que tengan 1 de probabilidad cada uno.
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ #todas  Q9 de las resistant,no ressistan poner los FC en un heatmap y por escrito.
+
+
+ 
+ 
+
+  #Visualizacion
+  
+    #Q9UPU5 <- FCMerge[grepl(c("Q9UPU5"), FCMerge$Row.names), ]
+# rownames(Q9UPU5) <- Q9UPU5$Row.names
+## pheatmap(Q9UPU5[,2:9],
+                #border_color = NA,# annotation_row = h3$ID,
+                #cluster_cols = F,
+                #cluster_rows = F,
+                #show_rownames = T,
+                #color = colorRampPalette(rev(brewer.pal(n=9, #name="RdBu")))(117),)
+ 
+ 
+ 
+ 
+ 
+
+ 
+#Nuria <- FCMerge[grepl(c("P04637"), FCMerge$Row.names), ] #TP53
+#NuriaSub <- FCMerge[grepl(c("P06493"), FCMerge$Row.names), ] #CDK1
+#Nuria <- rbind(Nuria,NuriaSub) 
+#NuriaSub <- FCMerge[grepl(c("P84243"), FCMerge$Row.names), ] #H3F3A
+#Nuria <- rbind(Nuria,NuriaSub) 
+
+
+ #rownames(Nuria) <- Nuria$Row.names
+ ##pheatmap(Nuria[,2:9],
+                #border_color = NA,# annotation_row = h3$ID,
+                ##cluster_cols = F,
+                #cluster_rows = F,
+                #show_rownames = T,
+                #color = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(117),)
+
+
+```
+
+
+
+
+
+#Proteoma NO resistant from max quant FC
+
+```{r MQ, echo=T}
+
+
+#1. obtenemos counts
+
+CNvsOncoFosfoOnco <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_proteome/Total_Proteome_final_TT_NResOnco.csv", sep = ",")
+
+FCOnco  <- CNvsOncoFosfoOnco[,c("Fold_Change","P.Value")]
+
+rownames(FCOnco) <- CNvsOncoFosfoOnco$protein_group
+
+
+#p.value filter and merge
+
+#FCOnco <- FCOnco[FCOnco$P.Value < 0.05, ]
+
+
+
+
+CNvsOncoFosfoIbru <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_proteome/Total_Proteome_final_TT_NResIbru.csv", sep = ",")
+
+FCIbru  <- CNvsOncoFosfoIbru[,c("Fold_Change","P.Value")]
+
+rownames(FCIbru) <- CNvsOncoFosfoIbru$ï..protein_group
+
+
+#FCIbru <- FCIbru[FCIbru$P.Value < 0.05, ]
+
+
+
+
+FCMerge <- merge(FCOnco,FCIbru, by=0)
+
+
+rownames(FCMerge) <- FCMerge$Row.names
+
+FCMerge <- FCMerge[,2:5]
+
+CNvsOncoFosfoCombo <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_proteome/Total_Proteome_final_TT_NResCombo.csv", sep = ",")
+
+FCCombo  <- CNvsOncoFosfoCombo[,c("Fold_Change","P.Value")]
+
+rownames(FCCombo) <- CNvsOncoFosfoCombo$ï..protein_group
+#FCCombo <- FCCombo[order(rownames(FCCombo) ,decreasing = T),]
+
+#FCCombo <- FCCombo[FCCombo$P.Value < 0.05, ]
+
+FCMerge <- merge(FCMerge,FCCombo, by=0)
+
+
+#FCMergeUp <- FCMerge[(FCMerge$Fold_Change.x > 0 & FCMerge$Fold_Change.y > 0) ,]
+
+
+
+
+
+#Aditivo: FC onco + FC ibru
+#Sinergia: Combinacion - aditivo
+
+
+FCMerge$FCaditivo <- FCMerge$Fold_Change.x + FCMerge$Fold_Change.y
+
+FCMerge$FCSinergia <- FCMerge$Fold_Change - FCMerge$FCaditivo
+
+
+#FCMerge2UP <- FCMerge[FCMerge$Fold_Change.x > 0 & FCMerge$Fold_Change.y > 0 &  FCMerge$Fold_Change>FCMerge$FCaditivo,]
+#FCMerge2DOWN <- FCMerge[FCMerge$Fold_Change.x < 0 & FCMerge$Fold_Change.y < 0 &  FCMerge$Fold_Change<FCMerge$FCaditivo,]
+
+
+
+
+
+FCMergeUp <- FCMerge[FCMerge$Fold_Change.x > 0 & FCMerge$Fold_Change.y > 0 ,]
+
+
+#FCMergeUp$FCSinergia <-  (FCMergeUp$Fold_Change - FCMergeUp$Fold_Change.x) + (FCMergeUp$Fold_Change - FCMergeUp$Fold_Change.y)
+
+
+FCMergeDown <- FCMerge[FCMerge$Fold_Change.x < 0 & FCMerge$Fold_Change.y < 0 ,]
+
+
+#FCMergeDown$FCSinergia <-  (FCMergeDown$Fold_Change - FCMergeDown$Fold_Change.x) + (FCMergeDown$Fold_Change - FCMergeDown$Fold_Change.y)
+
+
+
+#probando a unir los down and up
+FCFull <- rbind(FCMergeUp,FCMergeDown)
+FCFull  <- FCFull[ ,c("Row.names","FCSinergia","P.Value")]
+FCFull <- FCFull[FCFull$P.Value < 0.1,]
+FCFull  <- FCFull[ ,c("Row.names","FCSinergia")]
+FCFull <- FCFull[order(FCFull$FCSinergia ,decreasing = T),]
+
+#FCFullRanks <- FCFull[,c("Row.names","FCSinergia")]
+
+#Cambio de fosfosites a proteina
+#FCFull$Row.names <- sub("_.*", "", FCFull$Row.names)
+
+write.table(FCFull, file="/Users/jparra/Documents/Gael/BTKSinergy/final results/fosfoproteomics/FCFullProteoNRSinergySigni.rnk", sep="\t", row.names=F, col.names=F)
+
+#file:///C:/Users/jparra/gsea_home/output/may15/my_analysis.GseaPreranked.1723636393946/index.html
+
+
+CNvsOncoFosfoOnco$
+#Onco vs control.  SIGNI
+ranksOnco  <- CNvsOncoFosfoOnco[ ,c("protein_group","logFC","P.Value")]
+ranksOnco <- ranksOnco[ranksOnco$P.Value < 0.1,]
+ranksOnco  <- ranksOnco[ ,c("protein_group","logFC")]
+ranksOnco  <- ranksOnco[order(ranksOnco$logFC ,decreasing = T),]
+#write.table(ranksOnco, file="/Users/jparra/Documents/Gael/BTKSinergy/final results/fosfoproteomics/ranksOncoProteoNRSigni.rnk", sep="\t", row.names=F, col.names=F)
+
+#file:///C:/Users/jparra/gsea_home/output/may15/my_analysis.GseaPreranked.1723635986427/index.html
+
+
+#Ibru vs control.    SIGNI
+ranksIbru  <- CNvsOncoFosfoIbru[ ,c("ï..protein_group","logFC","P.Value")]
+ranksIbru <- ranksIbru[ranksIbru$P.Value < 0.1,]
+ranksIbru  <- ranksIbru[ ,c("ï..protein_group","logFC")]
+ranksIbru  <- ranksIbru[order(ranksIbru$logFC ,decreasing = T),]
+#write.table(ranksIbru, file="/Users/jparra/Documents/Gael/BTKSinergy/final results/fosfoproteomics/ranksIbruProteoNRSigni.rnk", sep="\t", row.names=F, col.names=F)
+
+
+#file:///C:/Users/jparra/gsea_home/output/may15/my_analysis.GseaPreranked.1723635862294/index.html
+
+
+
+
+
+
+   #  tmp <- FCMergeUp[FCMergeUp$Row.names %in% c("Q9UPU5_1145___2","P61244_11___2"), c("Fold_Change.x","Fold_Change.y","Fold_Change","FCaditivo")]
+
+ #pheatmap(tmp,
+               # border_color = NA,# annotation_row = h3$ID,
+                #cluster_cols = F,
+               # cluster_rows = F,
+               # show_rownames = T,
+                #color = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(117),)
+
+
+
+
+```
+
+
+
+#Proteoma resistant from max quant FC
+
+```{r MQ, echo=T}
+
+
+#1. obtenemos counts
+
+CNvsOncoFosfoOnco <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_proteome/Total_Proteome_final_TT_ResOnco.csv", sep = ",")
+
+FCOnco  <- CNvsOncoFosfoOnco[,c("Fold_Change","P.Value")]
+
+rownames(FCOnco) <- CNvsOncoFosfoOnco$protein_group
+
+
+#p.value filter and merge
+
+#FCOnco <- FCOnco[FCOnco$P.Value < 0.05, ]
+
+
+
+
+CNvsOncoFosfoIbru <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_proteome/Total_Proteome_final_TT_ResIbru.csv", sep = ",")
+
+FCIbru  <- CNvsOncoFosfoIbru[,c("Fold_Change","P.Value")]
+
+rownames(FCIbru) <- CNvsOncoFosfoIbru$ï..protein_group
+
+
+#FCIbru <- FCIbru[FCIbru$P.Value < 0.05, ]
+
+
+
+
+FCMerge <- merge(FCOnco,FCIbru, by=0)
+
+
+rownames(FCMerge) <- FCMerge$Row.names
+
+FCMerge <- FCMerge[,2:5]
+
+CNvsOncoFosfoCombo <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_proteome/Total_Proteome_final_TT_ResCombo.csv", sep = ",")
+
+FCCombo  <- CNvsOncoFosfoCombo[,c("Fold_Change","P.Value")]
+
+rownames(FCCombo) <- CNvsOncoFosfoCombo$ï..protein_group
+#FCCombo <- FCCombo[order(rownames(FCCombo) ,decreasing = T),]
+
+#FCCombo <- FCCombo[FCCombo$P.Value < 0.05, ]
+
+FCMerge <- merge(FCMerge,FCCombo, by=0)
+
+
+#FCMergeUp <- FCMerge[(FCMerge$Fold_Change.x > 0 & FCMerge$Fold_Change.y > 0) ,]
+
+
+
+
+
+#Aditivo: FC onco + FC ibru
+#Sinergia: Combinacion - aditivo
+
+
+FCMerge$FCaditivo <- FCMerge$Fold_Change.x + FCMerge$Fold_Change.y
+
+FCMerge$FCSinergia <- FCMerge$Fold_Change - FCMerge$FCaditivo
+
+
+FCMergeUp <- FCMerge[FCMerge$Fold_Change.x > 0 & FCMerge$Fold_Change.y > 0 ,]
+
+
+
+FCMergeDown <- FCMerge[FCMerge$Fold_Change.x < 0 & FCMerge$Fold_Change.y < 0 ,]
+
+
+#probando a unir los down and up
+FCFull <- rbind(FCMergeUp,FCMergeDown)
+FCFull  <- FCFull[ ,c("Row.names","FCSinergia","P.Value")]
+FCFull <- FCFull[FCFull$P.Value < 0.1,]
+FCFull  <- FCFull[ ,c("Row.names","FCSinergia")]
+FCFull <- FCFull[order(FCFull$FCSinergia ,decreasing = T),]
+
+#FCFullRanks <- FCFull[,c("Row.names","FCSinergia")]
+
+#Cambio de fosfosites a proteina
+#FCFull$Row.names <- sub("_.*", "", FCFull$Row.names)
+
+write.table(FCFull, file="/Users/jparra/Documents/Gael/BTKSinergy/final results/fosfoproteomics/FCFullProteoRSinergySigni.rnk", sep="\t", row.names=F, col.names=F)
+
+#file:///C:/Users/jparra/gsea_home/output/may15/my_analysis.GseaPreranked.1723636791948/index.html
+
+
+#Onco vs control.  SIGNI
+ranksOnco  <- CNvsOncoFosfoOnco[ ,c("protein_group","logFC","P.Value")]
+ranksOnco <- ranksOnco[ranksOnco$P.Value < 0.1,]
+ranksOnco  <- ranksOnco[ ,c("protein_group","logFC")]
+ranksOnco  <- ranksOnco[order(ranksOnco$logFC ,decreasing = T),]
+write.table(ranksOnco, file="/Users/jparra/Documents/Gael/BTKSinergy/final results/fosfoproteomics/ranksOncoProteoRSigni.rnk", sep="\t", row.names=F, col.names=F)
+
+#file:///C:/Users/jparra/gsea_home/output/may15/my_analysis.GseaPreranked.1723636915155/index.html
+
+
+#Ibru vs control.    SIGNI
+ranksIbru  <- CNvsOncoFosfoIbru[ ,c("ï..protein_group","logFC","P.Value")]
+ranksIbru <- ranksIbru[ranksIbru$P.Value < 0.1,]
+ranksIbru  <- ranksIbru[ ,c("ï..protein_group","logFC")]
+ranksIbru  <- ranksIbru[order(ranksIbru$logFC ,decreasing = T),]
+write.table(ranksIbru, file="/Users/jparra/Documents/Gael/BTKSinergy/final results/fosfoproteomics/ranksIbruProteoRSigni.rnk", sep="\t", row.names=F, col.names=F)
+
+
+#file:///C:/Users/jparra/gsea_home/output/may15/my_analysis.GseaPreranked.1723637236500/index.html
+
+
+
+
+
+#Q9UPU5 <- FCMerge[grepl("Q9UPU5", FCMerge$Row.names), ]
+
+ #rownames(Q9UPU5) <- Q9UPU5$Row.names
+#Q9UPU5[,2:9]
+ #pheatmap(Q9UPU5[,2:9],
+               # border_color = NA,# annotation_row = h3$ID,
+               # cluster_cols = F,
+               ## cluster_rows = F,
+               # show_rownames = T,
+               # color = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(117),)
+
+
+
+#Nuria <- FCMerge[grepl(c("Q9UPU5"), FCMerge$Row.names), ]  #USP24
+#NuriaSub <- FCMerge[grepl(("P04637"), FCMerge$Row.names), ] #TP53
+#Nuria <- rbind(Nuria,NuriaSub) 
+#NuriaSub <- FCMerge[grepl(("Q09472"), FCMerge$Row.names), ] #EP300
+#Nuria <- rbind(Nuria,NuriaSub) 
+#NuriaSub <- FCMerge[grepl(("Q07812"), FCMerge$Row.names), ] #BAX
+#Nuria <- rbind(Nuria,NuriaSub)
+#NuriaSub <- FCMerge[grepl(("Q9NPI1"), FCMerge$Row.names), ] #BRD7
+#Nuria <- rbind(Nuria,NuriaSub)
+#NuriaSub <- FCMerge[grepl(("Q9NWT1"), FCMerge$Row.names), ]  #P21, CDKN1A
+#Nuria <- rbind(Nuria,NuriaSub)
+#NuriaSub <- FCMerge[grepl(("Q9BXH1"), FCMerge$Row.names), ] #PUMA, BBC3
+#Nuria <- rbind(Nuria,NuriaSub)
+
+ 
+ 
+ 
+```
+
+
+
+
+
+
