@@ -1,0 +1,836 @@
+---
+title: "Single Cell pipeline1"
+author: "Jeronimo Parra"
+date: "28/12/2023"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+## Single Cell Report
+Here we have a example of the single cell analisis of 6 samples from prostate from mouse. I would do the cell ranger execution in a process in nextflow in order to execute in HPC and the upload the h5 data to analice nad visualice in R, calling a Rmarkdown also with nextflow.
+
+I made this analisys at my actual work as a single cell analisys service which we provide to another reserch center.
+I remove some details about the samples and conclusion in order to not share any sensible data.
+This analisys was not designed for trayectory analisys but I add some at the end.
+
+
+```{r one, include=FALSE}
+
+#install.packages("xfun")
+library(xfun)
+#Seurat:
+library(Seurat)
+#install.packages("hdf5r")
+library(hdf5r)
+
+
+
+data1 <- Read10X_h5("/Users/jparra/Documents/single cell/miranda/outsL201/filtered_feature_bc_matrix.h5")
+data2 <- Read10X_h5("/Users/jparra/Documents/single cell/miranda/outsL202/filtered_feature_bc_matrix.h5")
+data3 <- Read10X_h5("/Users/jparra/Documents/single cell/miranda/outsL214/filtered_feature_bc_matrix.h5")
+
+#con: 213,236,736,737
+data4 <- Read10X_h5("/Users/jparra/Documents/single cell/miranda/outsL736/filtered_feature_bc_matrix.h5")
+data5 <- Read10X_h5("/Users/jparra/Documents/single cell/miranda/outsL737/filtered_feature_bc_matrix.h5")
+data6 <- Read10X_h5("/Users/jparra/Documents/single cell/miranda/outsL213/filtered_feature_bc_matrix.h5")
+data7 <- Read10X_h5("/Users/jparra/Documents/single cell/miranda/outsL236/filtered_feature_bc_matrix.h5")
+
+#data8 <- Read10X_h5("/Users/jparra/Documents/single cell/miranda/outsL737/filtered_feature_bc_matrix.h5")
+
+#data9 <- Read10X_h5("/Users/jparra/Documents/single cell/miranda/outsL736/filtered_feature_bc_matrix.h5")
+#data10 <- Read10X_h5("/Users/jparra/Documents/single cell/miranda/outsL737/filtered_feature_bc_matrix.h5")
+
+# create Seurat object
+data1 <- CreateSeuratObject(counts = data1)
+data2 <- CreateSeuratObject(counts = data2)
+data3 <- CreateSeuratObject(counts = data3)
+
+data4 <- CreateSeuratObject(counts = data4)
+data5 <- CreateSeuratObject(counts = data5)
+data6 <- CreateSeuratObject(counts = data6)
+data7 <- CreateSeuratObject(counts = data7)
+#data8 <- CreateSeuratObject(counts = data6)
+#data9 <- CreateSeuratObject(counts = data5)
+#data10 <- CreateSeuratObject(counts = data6)
+
+#Unimos las muestras
+
+
+data1$sample <- "L201"
+data2$sample <- "L202"
+data3$sample <- "L214"
+
+data1$patient <- "WithoutmMK"
+data2$patient <- "WithoutmMK"
+data3$patient <- "WithoutmMK"
+
+data4$sample <- "L736"
+data5$sample <- "L737"
+data6$sample <- "L213"
+data7$sample <- "L236"
+
+data4$patient <- "WithmMK"
+data5$patient <- "WithmMK"
+data6$patient <- "WithmMK"
+data7$patient <- "WithmMK"
+
+#data6$withmMK <- "Yes"
+
+#QC
+data1[["percent.mt"]] <- PercentageFeatureSet(data1, pattern = "^MT-")
+data2[["percent.mt"]] <- PercentageFeatureSet(data2, pattern = "^MT-")
+data3[["percent.mt"]] <- PercentageFeatureSet(data3, pattern = "^MT-")
+
+data4[["percent.mt"]] <- PercentageFeatureSet(data4, pattern = "^MT-")
+data5[["percent.mt"]] <- PercentageFeatureSet(data5, pattern = "^MT-")
+data6[["percent.mt"]] <- PercentageFeatureSet(data6, pattern = "^MT-")
+data7[["percent.mt"]] <- PercentageFeatureSet(data7, pattern = "^MT-")
+#data8[["percent.mt"]] <- PercentageFeatureSet(data6, pattern = "^MT-")
+#data9[["percent.mt"]] <- PercentageFeatureSet(data5, pattern = "^MT-")
+#data10[["percent.mt"]] <- PercentageFeatureSet(data6, pattern = "^MT-")
+
+#Porcentaje de mitocondrial es 0 porque la funcion PercentageFeatureSet() funciona para humanos, en nuestro caso(raton) debemos ajustar y ponerlo en minuscula. !!!
+
+
+#Unimos 
+dataRaw <- merge(data1, y = data2, add.cell.ids = c("data1", "data2"), project = "Trymerging")
+dataRaw <- merge(data3, y = dataRaw, add.cell.ids = c("data3", "dataRaw"), project = "Trymerging")
+
+#dataSin <- merge(data1, y = data2, add.cell.ids = c("data1", "data2"), project = "Trymerging")
+#dataSin <- merge(data3, y = dataSin, add.cell.ids = c("data3", "dataRaw"), project = "Trymerging")
+
+
+dataRaw <- merge(data4, y = dataRaw, add.cell.ids = c("data4", "dataRaw"), project = "Trymerging")
+dataRaw <- merge(data5, y = dataRaw, add.cell.ids = c("data5", "dataRaw"), project = "Trymerging")
+dataRaw <- merge(data6, y = dataRaw, add.cell.ids = c("data6", "dataRaw"), project = "Trymerging")
+#View(head(data@meta.data))  #V mayuscula
+dataRaw <- merge(data7, y = dataRaw, add.cell.ids = c("data7", "dataRaw"), project = "Trymerging")
+
+#Unimos los datos de las que SI tienen microMK
+
+#dataRaw <- merge(data4, y = data5, add.cell.ids = c("data4", "data5"), project = "Trymerging")
+
+#dataRaw <- merge(data6, y = dataRaw, add.cell.ids = c("data6", "dataRaw"), project = "Trymerging")
+
+#dataRaw <- merge(data7, y = dataRaw, add.cell.ids = c("data7", "dataRaw"), project = "Trymerging")
+#dataRaw <- data1
+#Estaria bien calcular en que porcentaje de mitocondrial me quedo con un % especifico de las celulas para estandarizar??
+
+
+#Con logaritmos en base 10
+#dataRaw$nFeature_RNALog <- log10(dataRaw$nFeature_RNA)
+#dataRaw$nCount_RNALog <- log10(dataRaw$nCount_RNA)
+#dataRaw$percent.mtLog <- log10(dataRaw$percent.mt)
+  
+
+#VlnPlot(dataRaw, features = c("nFeature_RNALog", "nCount_RNALog", "percent.mt"), ncol = 3, group.by = "sample")
+
+
+
+#saveRDS(dataRaw,"/Users/jparra/Documents/single cell/mouseData/dataRaw.rds")
+
+  
+```
+
+
+
+```{r one.2, echo=FALSE}
+
+VlnPlot(dataRaw, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3, group.by = "sample")
+
+#Hacer el violin de los genes de interes para ver emjor las diferencias uqe en el featureplot.!
+
+#Los counts son hasta 150000, pero el feature va de 0 a 2 y las graficas de marta tambien, que transformacion ocurre ahi??
+#Puede ser por los outliers, se podria mejorar?!!!!!!!
+
+#- Porque es despues de la normalizacion.
+#Pruebo con CLR pero los resultados son muy parecidos.
+
+#Probar los 6 gnes de interes,cada uno con un color.Probar!
+
+#Mejorar la identificacion del tipo celular con la grafica clusterizada por colores.
+
+#El porcentaje mitocondrial no es  el mismo qe en azimuth????
+
+
+
+  
+```
+
+Violin plot of raw data. For every sample we can see the distribution of the values of the variables nFeatures(number of genes by cell), nCount( number of count by cell) and percent.mt which is the mitocondrial RNA percetange found by cell 
+
+
+
+
+```{r one.3, echo=FALSE}
+
+#dataRaw <- readRDS("/Users/jparra/Documents/single cell/mouseData/dataRaw.rds")
+
+    
+#Marta Casado
+   # plot(density(dataRaw$nFeature_RNA)) + abline(v = 1000)
+
+#pdf(file = here::here("plots", analysis, "n_feature_density.pdf"))
+
+#dev.off()
+
+#subsetting
+
+data <- subset(dataRaw, subset = nFeature_RNA > 100 & percent.mt < 25)
+
+VlnPlot(data, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3, group.by = "sample")
+
+
+
+#a <- as.data.frame(data@assays$RNA@counts)
+
+#VlnPlot(data, features = c("MECOM"), group.by = "seurat_clusters") 
+
+
+library(ggplot2)
+
+#VlnPlot(data, features = c("MECOM"), group.by = "seurat_clusters") + 
+#  ylim(c(0, 0.00005)) 
+
+
+```
+
+After filtering by number of genes by cell(nFeatures) higher than 100 and by mitocondrial percentage lower than 25
+
+
+```{r one.4, include=FALSE}
+
+
+
+#Normalizacion
+
+  data <- NormalizeData(data, normalization.method = "LogNormalize", scale.factor = 10000) #Cambiar el scale.factor a 100 no mejora los resultados
+  #rm(dataRaw)
+  #rm(data1)
+  #rm(data2)
+  #rm(data3)
+  #rm(data4)
+  #rm(data5)
+  #rm(data6)
+  #rm(data7)
+
+  #data <- NormalizeData(data, normalization.method = "CLR", margin=1)
+
+  summary(Matrix::colSums(data@assays$RNA@counts[,]>0))
+
+  data <- FindVariableFeatures(data, selection.method = "vst", nfeatures = 2000)   #nfeatures es el resultado de la media de features(linea anterior).
+  #VariableFeaturePlot(data)
+
+#all.genes[all.genes %in% "CCL2"]
+#Escalado
+    all.genes <- rownames(data)
+  data <- ScaleData(data, features = all.genes)
+  
+  data <- RunPCA(data, features = VariableFeatures(object = data))
+  
+ # ElbowPlot(data)
+  data <- FindNeighbors(data, dims = 1:20)  #Ponemos 14 aqui por que en el resultado de elbowplot a partir de 14 apenas baja mas.  Lo mismo que UMAP!!!!
+  
+  
+  
+ # remove.packages("Matrix")
+ # install.packages("Matrix")
+ # BiocManager::install("rapport")
+
+  
+  #clustering
+   # data <- FindClusters(data, resolution = 0.5) #21 comunidades con resolucion 0.5, la bajamos para ver menos grupos.
+    
+        data <- FindClusters(data, resolution = 0.5) #con un valor de 0.1 de resolucion  obtengo 11 clusters. Maximo para agrupar los progenitores MK en muestras CON MK
+        
+
+  data <- RunUMAP(data, dims = 1:20) #Ponemos 14 aqui tb????
+  
+  
+  
+  #gene_list <- c("IL6","MECOM")
+#data <- RunUMAP(data, features = gene_list)
+
+  
+```
+
+
+
+## Find cluster and markers.
+
+
+
+```{r two, echo=FALSE}
+
+
+
+DimPlot(data, reduction = "umap",raster=FALSE, group.by = "sample")   #Me saca 21 cluster
+
+
+  DimPlot(data, reduction = "umap",raster=FALSE, group.by = "patient", pt.size = 0.02)   #Me saca 21 cluster
+
+  
+
+    
+#saveRDS(data, "/Users/jparra/Documents/single cell/mouseData/data.rds")
+#saveRDS(markers, "/Users/jparra/Documents/single cell/mouseData/markers.rds")
+    
+    
+    
+
+
+    
+    
+    
+```
+
+In this graph(UMAP) every point is a cell and each colour is a different samples. The position in the graph it’s depend on the expression of the cell, then all the similar cell should cluster together.
+Here we can see the 3 samples integration it’s very good, the population of the samples are similar, which is a good indicator of the quality.
+
+
+```{r two.2, echo=FALSE}
+
+
+
+DimPlot(data, reduction = "umap", label = TRUE,raster=FALSE)   #Me saca 21 cluster
+
+  
+
+  
+```
+
+In this UMAP we calculate and represent the clustering of the cells. Each group should represent a different cellular type or subtype.
+We found 11 cluster at this level of resolution(0.1).
+
+
+
+
+```{r two.3, echo=FALSE}
+
+DimPlot(data, reduction = "umap",raster=FALSE, label = TRUE, pt.size = 0.5, split.by =   "sample", ncol = 2)  
+
+
+
+DimPlot(data, reduction = "umap",raster=FALSE, label = TRUE, pt.size = 0.5, split.by =   "sample", ncol = 2)
+  
+
+DimPlot(data, reduction = "umap",raster=FALSE, label = TRUE, pt.size = 0.5, split.by =   "patient", ncol = 2)
+
+```
+
+It’s the same representation than before but split by sample, here we can see in the sample NSD2 there are more cells of the cluster 0 and less of the cluster 1. But all of the are consistent.
+
+
+
+
+
+
+```{r two.4, echo=FALSE}
+
+
+VlnPlot(data, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3, group.by = "seurat_clusters")
+
+
+#Marcamos los genes de progenitores de MK para idnetificar que cluster es:
+#Comparamos
+ FeaturePlot(data,ncol=1, features = c("ITGA2B")) 
+  FeaturePlot(data,ncol=1,split.by = "patient", features = c("ITGA2B")) 
+
+ #
+  FeaturePlot(data,ncol=3, features = c("EZH2","RUNX1","CDK1","CDC20","CCNE1","CCL7","BAALC")) 
+ # FeaturePlot(data,ncol=1, features = c("ITGA2B")) 
+ 
+VlnPlot(data, features = c("LAMB3"), ncol = 1, group.by = "seurat_clusters")
+
+ #Megakaryocyte_progenitors: ITGA2B
+
+ markers[markers$gene %in% "CCL2",]
+ 
+ 
+ 
+ 
+ #Genes interes :  CCL2, IL6, EGR3, LAMB3, HBBP1,no lo encuentra, CTSE, MECOM
+# con y sin micro y ver si hay diferencias!!!
+ #Los genes downregulados tienen menos expresion en deleted.
+ #control es sin microMegas, tonces deleted es con mMK.
+ #Buscamos que en la grafica con mMK tienen que aparecer menos azul.
+ FeaturePlot(data,ncol=2, features = c("CCL2","IL6","EGR3","LAMB3","CTSE","MECOM")) 
+ 
+ 
+  FeaturePlot(data,ncol=1, features = c("IL6")) 
+
+ 
+  
+#  preProc <- preProcess(data[, 1:4], method = c("center", "scale"))
+
+  
+ # data(iris)
+#iris[, 1:4]
+
+
+#custom_colors <- colorRampPalette(c("red", "white", "blue")) # Red to blue scale
+
+
+
+
+    FeaturePlot(data,ncol=1, max.cutoff = "q80",min.cutoff = "q20", features = c("IL6")) 
+
+        FeaturePlot(data,ncol=1,min.cutoff = "q90", features = c("IL6")) 
+
+        FeaturePlot(data,ncol=1, features = c("LAMB3")) 
+
+    
+        FeaturePlot(data,ncol=1, max.cutoff = "0.0000025",min.cutoff = "0", features = c("LAMB3")) 
+
+        #FeaturePlot(data,ncol=1, max.cutoff = "3",min.cutoff = "0.5", features = c("EGR3")) 
+
+        VlnPlot(data, features = c("LAMB3"), ncol = 1, group.by = "patient")
+        
+         VlnPlot(data, features = c("IL6"), ncol = 1, group.by = "patient")
+         
+         
+           FeaturePlot(data,ncol=1, max.cutoff = "0.0000025",min.cutoff = "0",split.by = "patient", features = c("LAMB3"))
+         
+         
+                 FeaturePlot(data,ncol=2, max.cutoff = "0.0000025",min.cutoff = "0",split.by = "patient", features = c("CCL2"))   
+         
+
+       FeaturePlot(data,ncol=2, features = c("CCL2","IL6","EGR3","LAMB3","CTSE","MECOM")) 
+ 
+       
+        FeaturePlot(data,ncol=2,split.by = "patient", features = c("CCL2")) 
+  
+        
+     
+
+
+
+
+plots <- FeaturePlot(
+  object = data, 
+  features = "HBB",
+  split.by = "patient",
+  cols = c("lightgrey", "blue"),
+ 
+  combine = FALSE  # No combina los gráficos de inmediato
+)
+
+# Combinar los gráficos y añadir la escala
+CombinePlots(plots = plots, ncol = 2)
+
+
+
+
+FeaturePlot(data,ncol=1, features = c("CD8A"))           
+
+
+
+
+    
+```
+
+
+
+Now we represent the features, counts and mitochondrial.percent by cluster. We can see the cluster 10(red circle) has very few genes by cells, it must be a technical noise. All other cluster looks good enough.
+
+
+
+
+
+##
+
+
+```{r three.0, include=FALSE}
+
+
+
+  markers <- FindAllMarkers(data, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+#Con el findAllMarkers haria los genes mas difernecialmente expresados en un cluster. Puedo separar los datos por pacientes con o sin mMK pero no puedo obtener los genes mas diferencialmente expresados entre ellos.
+
+  #Punto control.Tarda mucho, mejor guardar el objeto
+  
+  #  data <- readRDS("/Users/jparra/Documents/single cell/mouseData/data.rds")
+# markers <- readRDS("/Users/jparra/Documents/single cell/mouseData/markers.rds")
+
+  
+  clusters.ref <- as.vector(unique(Idents(data)))
+  
+library("matchSCore2")
+markers2 <- cut_markers(clusters = clusters.ref, markers = markers, ntop = 100)
+  
+markersProgMK <-   markers2[["17"]]
+
+   #saveRDS(markersProgMK, "/Users/jparra/Documents/single cell/miranda/markersWithOutmMK.rds")
+   saveRDS(markersProgMK, "/Users/jparra/Documents/single cell/miranda/markersWithmMK.rds")
+ markersmMK <- readRDS("/Users/jparra/Documents/single cell/miranda/markersWithmMK.rds")
+ markersNOmMK <- readRDS("/Users/jparra/Documents/single cell/miranda/markersWithOutmMK.rds")
+
+ 
+ interseccion_ab <- intersect(markersmMK, markersNOmMK)
+print(interseccion_ab)
+ interseccion_ab
+ 
+ genesCon <- markersmMK[!(markersmMK %in% markersNOmMK)]
+ 
+write.table(genesCon, file="/Users/jparra/Documents/single cell/miranda/genesCon300.txt", sep=',', row.names=F, col.names=F)
+ write.table(markersmMK, file="/Users/jparra/Documents/single cell/miranda/markersmMK.txt", sep=',', row.names=F, col.names=F)
+  write.table(markersNOmMK, file="/Users/jparra/Documents/single cell/miranda/markersNOmMK.txt", sep=',', row.names=F, col.names=F)
+#markersmMK$`9`[markersmMK$`9` %in% markersNOmMK$`2`]  #Todos diferentes
+
+##heatmap markers.
+  library(dplyr)    
+markers %>%
+    group_by(cluster) %>%
+    top_n(n = 5, wt = avg_log2FC) -> top5
+  
+```
+
+
+```{r three, echo=FALSE}
+
+
+#DoHeatmap(data, features = top5$gene) + NoLegend()
+
+#top5$gene = toupper(top5$gene)
+
+#top5$gene[top5$gene %in% "Thy-1"]
+
+    
+#Umap por muestras
+
+
+
+ #DimPlot(data, reduction = "umap",raster=FALSE, group.by = "sample")   #Me saca 21 cluster
+
+
+
+#Resolucion 0.01
+
+
+#data <- FindClusters(data, resolution = 0.01) #con un valor de 0.1 de resolucion  obtengo 11 clusters.
+        
+
+  #data <- RunUMAP(data, dims = 1:10) #Marta pondria 20
+  
+#DimPlot(data, reduction = "umap",raster=FALSE, label = TRUE, pt.size = 0.5)   #Me saca 11 cluster
+
+
+  
+#DimPlot(data, reduction = "umap",raster=FALSE, label = TRUE, pt.size = 0.5, split.by =   "sample")   #Me saca 6 cluster
+
+
+  #markers001 <- FindAllMarkers(data, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+
+  
+
+
+
+
+
+    
+  
+```
+
+In this heatmap we can see the top 5 genes differentially expressed by cluster.
+In the next slides we can see the expression of this genes in the UMAP representation.
+
+
+Cluster0
+
+```{r three.2, echo=FALSE}
+
+
+# FeaturePlot(data,ncol=2, features = c("Pid1","Mrc1","Lyz2","F13a1","Ccl8")) 
+
+
+  
+```
+
+
+Cluster1
+
+```{r three.32, echo=FALSE}
+
+
+#Genes interes :  CCL2, IL6, EGR3, LAMB3, HBBP1,no lo encuentra, CTSE, MECOM
+
+ FeaturePlot(data,ncol=2, features = c("CCL2","IL6","EGR3","LAMB3","CTSE","MECOM")) 
+ 
+
+
+
+
+#Genes marcadores :
+ FeaturePlot(data,ncol=4, features = c("SIGLEC7","S100A8","CSF1R","CD3G","KLRD1","CD79A","EBF1","VPREB1"))
+#DC: SIGLEC7
+#Neutrophil: S100A8
+#Monocytes_and progenitors: CSF1R
+#T_cell: CD3G
+#NK: KLRD1
+#B_cell: CD79A
+#B_lineage: EBF1
+#Pre_& pro B: VPREB1
+ 
+ 
+ 
+ 
+ 
+ FeaturePlot(data,ncol=4, features = c( "CD74","PTPRC","TFRC","HBB","KIT","FLT3","GATA3","ITGA2B","MPO","ELANE","MS4A2","CD4"))
+ 
+#APC: CD74
+#Hematopoietic_cells: PTPRC
+#Erythroid_and cycling cells: TFRC
+#Erythroid_cell: HBB
+#HSPCs: KIT
+#Lymphomyeloid_progenitors: FLT3
+#Erythroid_progenitors: GATA3
+#Megakaryocyte_progenitors: ITGA2B
+#Myeloid_progenitors: MPO
+#Myeloid_progenitors: ELANE
+#Eosinophil_and basophil progenitors: MS4A2
+#CD4_T cells: CD4
+
+FeaturePlot(data,ncol=4, features = c("CD8A","CD19","IGHD","MME","CD33","CD34","FCGR3A","MZB1","NKG7","GNLY","CD14","LYZ","FCER1A","CST3","MS4A7","IL7R"))
+
+#CD8_T cells: CD8A
+#B_cell: CD19
+#Memory_B cell: IGHD
+#Naive_and pre_ pro B cell: MME
+#Monocytes: CD33
+#Myeloid_progenitors: CD34
+#FCGR3A+_monocytes: FCGR3A
+#Plasma: MZB1
+#NK: NKG7
+#NK: GNLY
+#CD14+_monocytes: CD14
+#Monocytes: LYZ
+#DC: FCER1A
+#DC: CST3
+#FCGR3A+_monocytes: MS4A7
+#Naive_CD4+ T: IL7R
+
+
+ FeaturePlot(data,ncol=2, features = c("LYZ","S100A8"))
+
+ 
+ #marcadores:
+ #0:NKAIN2
+ #1:GNLY
+  
+ 
+ #FeaturePlot(data,ncol=5, features =  top5$gene[51:55]) 
+
+ 
+ 
+ #Marcadores de progMK:
+#GP1BB,ITGA2B,RGS18,LTBP1,MMRN1,MED12L
+
+ FeaturePlot(data,ncol=2, features = c("GP1BB","ITGA2B","RGS18","LTBP1","MMRN1","MED12L"))
+ 
+VlnPlot(data, features = c("GP1BB"), ncol = 1, group.by = "seurat_clusters")
+
+VlnPlot(data, features = c("ITGA2B"), ncol = 1, group.by = "seurat_clusters")
+
+
+VlnPlot(data, features = c("MECOM"), ncol = 1, group.by = "seurat_clusters")
+
+VlnPlot(data, features = c("LAMB3"), ncol = 1, group.by = "patient")
+
+VlnPlot(data, features = c("HBB"), ncol = 1, group.by = "patient")
+
+
+```
+
+ FeaturePlot(data,ncol=2, features = c("SIGLEC7","S100A8","CSF1R","CD3G","KLRD1","CD79A"))
+ 
+ FeaturePlot(data,ncol=2, features = c("GP1BB","ITGA2B","RGS18","LTBP1"))
+
+
+#Cell types identification
+Following the paper:Nature. Single cell analysis of cribriform prostate cancer reveals cell intrinsic and tumor microenvironmental pathways of aggressive disease. October 2022
+Using the same markers on this paper and the web app "CellMarker" we can identify our clusters.
+Also we save the most expresed genes in a csv.
+ 
+```{r three.3, echo=FALSE}
+
+
+
+
+
+ 
+  DotPlot(data, features = c("Ptprc","Cd79a", "Ms4a1", "Gnl1","Prf1","Nkg7","Klrd1","Cd3d","Cd3e","Cd3g", "Cd4","C1qa","C1qb","Aif1","Cd68","Lyz1","Lyz2","Il1b", "Fcna","Fcnb","Kit","Tpsb2","Tpsab1","Cpa3",
+                           "Ackr1","Ccl4","Pecam1","Ifi27","Clec14a","Enpp2","Depp1","Rgs5","Acta2","Tagln","Bgn","Lum","Dcn","Igf1",
+                           "Plp1","Mpz","Krt5","Krt7","Krt19","Mmp7","Epcam","Prac1","Hoxb13","Lrrc26","Spdef","Nkx3-1","klk3","Folh1","Schlap1","Pla2g2a","Cetn2","Zmynd10")) + RotatedAxis()
+
+
+
+#Nombres al umap:
+ levels(data)
+ 
+ #levels(data) <- c("5 B cells","3 T cells","2 Myeloide","0 Macrofagos","1 Neutrofilos","8 Dendritic/Natural Killer","6 Fibroblastos","9 Epitelial", "4 Endotelial","7","10" )
+
+  
+ 
+  #Dandole nombre a los cluster
+ new.cluster.ids <- c("0 Neutrophils", "1 Macrophages", "2 T cells ", "3 Myeloid", "4 B cells", "5 Endothelial", "6 Fibroblasts", "7 Epithelial", "8 Natural Killer","9 Hematopoietic stem cell  ")
+ names(new.cluster.ids) <- levels(data)
+ data <- RenameIdents(data, new.cluster.ids)
+ 
+ 
+ DimPlot(data, reduction = "umap", label = TRUE, pt.size = 0.5) + NoLegend()
+ 
+ 
+#Guardamos los genes marcadores de cada cluster 
+ write.table(markers, file="/Users/jparra/Documents/single cell/mouseData/markers.csv", sep=",", row.names=FALSE)
+
+ 
+
+ DimPlot(data, reduction = "umap",raster=FALSE, label = TRUE, pt.size = 0.5, split.by =   "sample", ncol = 2) 
+ 
+
+ 
+ #RNAseq
+ 
+ cts <- readr::read_delim("/Users/jparra/Documents/single cell/miranda/rnaseq/anonmised_cts.txt", delim = "\t")
+
+ #a <-colnames(cts)
+ a <- c("id",colnames(cts))
+ 
+ cts <- readr::read_delim("/Users/jparra/Documents/single cell/miranda/rnaseq/anonmised_cts.txt", delim = "\t",col_names=a,skip=1)
+ 
+ #Las muestras both deleted, el id que se genera al cargar no corresponde con l aanotacion que hicimos nosotros.
+     cts <- cts[order(cts$comutant_status), ]
+
+ #col <- colnames(cts)
+  col <- c("anon_id",colnames(cts[,4:16400] ))
+
+ counts <- cts[,col]
+ 
+ counts <- t(counts)
+ colnames(counts) <- counts[1,]
+    #counts <- counts[order(counts$comutant_status), ]
+
+ #dim(cts)
+ #write.table(counts, file = "/Users/jparra/Documents/single cell/miranda/rnaseq/counts.txt", sep = "\t", row.names = TRUE,col.names=F, quote = F)
+
+ 
+ #Comproamos counts de genes de las rutas de interes:
+ #counts["MINPP1",]
+ 
+ #ELIMINAR OUTLIERS!!!
+ 
+  x <- counts["CCL2",1:9]
+   y <- counts["CCL2",9:359]
+
+ #counts<- as.numeric(counts)
+ 
+ #heatmap de los 6 genes de interes
+ # counts["IL6",]
+  
+  #Si mirase el count del mecon tinee que salir DE en los both deleted, lo mismo que tner mMK.
+
+ # mean(x)
+  #mean(y)
+
+  x <- as.numeric(x)
+  y <- as.numeric(y)
+
+  boxplot(x, y ,
+        main = "Counts of CCL2",
+        xlab = "With mMK           without mMK",
+        ylab = "Counts",
+        col = "lightblue",
+        border = "darkblue",
+        notch = FALSE)
+  
+  
+  
+  
+  
+  
+ 
+```
+```{r 4, echo=FALSE}
+
+
+#Calcular la media de expresion de un gen en todas las celulas
+
+library(Seurat)
+
+# Suponiendo que tienes un objeto Seurat llamado seurat_obj
+
+# Nombre del gen para el cual deseas calcular la expresión media
+#gen <- "IL6"  # Reemplaza "GeneX" con el nombre del gen de interés
+
+# Extraer los datos de expresión para el gen específico
+expression_values <- FetchData(data, vars = "IL6")
+
+# Calcular la expresión media del gen en todas las células
+mean_expression <- mean(expression_values[["IL6"]], na.rm = TRUE)
+
+# Mostrar el resultado
+print(mean_expression)
+
+
+#Sin
+ # Extraer los datos de expresión para el gen específico
+expression_values <- FetchData(dataSin, vars = "IL6")
+
+# Calcular la expresión media del gen en todas las células
+mean_expression <- mean(expression_values[["IL6"]], na.rm = TRUE)
+
+# Mostrar el resultado
+print(mean_expression)
+
+
+
+
+
+
+Idents(data) <- "patient"
+
+
+# Encontrar genes diferencialmente expresados entre las dos condiciones
+markers3 <- FindMarkers(
+  object = data,
+  ident.1 = "WithmMK",   # Condición 1
+  ident.2 = "WithoutmMK",   # Condición 2
+  min.pct = 0,          # Expresión en al menos el 25% de las células
+  logfc.threshold = 0,  # Umbral de log fold-change mínimo
+  test.use = "wilcox"      # Prueba estadística (puedes ajustar a "MAST", "bimod", etc.)
+)
+
+markers3[rownames(markers3) %in% "LAMB3",]  
+
+
+#Idents(data)
+
+#Genes diferencialmente expresados en un cluster
+# Filtrar las células del clúster de interés
+cells_of_cluster <- WhichCells(seurat_obj, ident = cluster_of_interest)
+
+# Filtrar aún más por las condiciones de interés
+cells_filtered <- cells_of_cluster[seurat_obj@meta.data[cells_of_cluster, condition_variable] %in% conditions_of_interest]
+
+# Subconjunto del objeto Seurat para incluir solo las células filtradas
+seurat_sub <- subset(seurat_obj, cells = cells_filtered)
+
+
+#Enviar miranda csv markers!!!
+ # Enviar graficos violin plot del RNA 6 genes de interes
+#Metodos single cell!!
+
+
+
+
+
+ write.table(markers3, file="/Users/jparra/Documents/single cell/miranda/markersMiranda.csv", sep=",", row.names=T)
+ 
+
+```
+
+
+
+Trayectory analisis:
+In this last graph we can see hoe certainly cell types change. There are 3 samples with very similar neutrophils between them and very different of the other 3 samples. This happend also with other cell types.
