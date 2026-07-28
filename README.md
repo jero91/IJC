@@ -2,7 +2,10 @@
 
 Josep Carreras Research Institute analysis
 
-1. Covid-19 epigenimoc analysis
-2. Lymphoma multi-omics analysis
-   2.1 RNA-seq
-   2.2 Phosphoproteomics
+16S microbiome analysis
+Doctorado
+   Covid-19 epigenimoc analysis
+   Lymphoma multi-omics analysis
+      RNA-seq
+      Phosphoproteomics
+single-cell
