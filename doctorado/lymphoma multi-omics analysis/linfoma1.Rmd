@@ -1,0 +1,6248 @@
+---
+title: "linfoma1"
+author: "Jeronimo Parra"
+date: "3/7/2023"
+output: html_document
+---
+
+
+
+##Pretratamiento
+
+
+
+
+```{r Pretratamiento}
+
+#URL sinergia : https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8609447/
+
+#Fastqc
+
+#install.packages("fastqcr")
+#library("fastqcr")
+#qc.dir <- system.file("fastqc_results""," package = "fastqcr")
+#qc.file <- system.file("fastqc_results "S1_fastqc.zip", package = "fastqcr")
+#qc_report(qc.file, result.file = "one-sample-report",interpret = TRUE)
+#qc_report("/Users/jparra/Documents/Gael/BTKSinergy/X204SC23021238-Z01-F001_01/01.RawData/UPN1/", result.file = #"one-sample-report",interpret = TRUE)
+#fastqc(fq.dir = "/Users/jparra/Documents/Gael/BTKSinergy/X204SC23021238-Z01-F001_01/01.RawData/UPN1/", # FASTQ files #directory
+#       qc.dir = "/Users/jparra/Documents/Gael/BTKSinergy/X204SC23021238-Z01-F001_01/01.RawData/UPN1/result", # Results #direcory
+#       threads = 4                    # Number of threads
+#       )
+
+
+#No funciona en windows: Error in .check_if_unix() : Unix system (MAC OSX or Linux) required.
+
+
+
+```
+
+
+
+
+
+## Loading and processing data from Salmon
+
+
+
+```{r Loading}
+
+
+
+#5. Load data
+countsUPN1 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPN1_quant/quant.sf",sep = "\t")
+countsUPN2 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPN2_quant/quant.sf",sep = "\t")
+countsUPN3 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPN3_quant/quant.sf",sep = "\t")
+countsUPN4 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPN4_quant/quant.sf",sep = "\t")
+countsUPN5 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPN5_quant/quant.sf",sep = "\t")
+countsUPN6 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPN6_quant/quant.sf",sep = "\t")
+countsUPNRES1 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPNRES1_quant/quant.sf",sep = "\t")
+countsUPNRES2 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPNRES2_quant/quant.sf",sep = "\t")
+countsUPNRES3 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPNRES3_quant/quant.sf",sep = "\t")
+countsUPNRES4 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPNRES4_quant/quant.sf",sep = "\t")
+countsUPNRES5 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPNRES5_quant/quant.sf",sep = "\t")
+countsUPNRES6 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPNRES6_quant/quant.sf",sep = "\t")
+countsREC1 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/REC1_quant/quant.sf",sep = "\t")
+countsREC2 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/REC2_quant/quant.sf",sep = "\t")
+countsREC3 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/REC3_quant/quant.sf",sep = "\t")
+countsREC4 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/REC4_quant/quant.sf",sep = "\t")
+countsREC5 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/REC5_quant/quant.sf",sep = "\t")
+countsREC6 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/REC6_quant/quant.sf",sep = "\t")
+countsJEKO1 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/JEKO1_quant/quant.sf",sep = "\t")
+countsJEKO2 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/JEKO2_quant/quant.sf",sep = "\t")
+countsJEKO3 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/JEKO3_quant/quant.sf",sep = "\t")
+countsJEKO4 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/JEKO4_quant/quant.sf",sep = "\t")
+countsJEKO5 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/JEKO5_quant/quant.sf",sep = "\t")
+countsJEKO6 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/JEKO6_quant/quant.sf",sep = "\t")
+countsMINO1 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/MINO1_quant/quant.sf",sep = "\t")
+countsMINO2 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/MINO2_quant/quant.sf",sep = "\t")
+countsMINO3 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/MINO3_quant/quant.sf",sep = "\t")
+
+
+countsFinal<- c()
+countsFinal <- cbind(as.integer(countsUPN1$NumReads),as.integer(countsUPN2$NumReads),as.integer(countsUPN3$NumReads),as.integer(countsUPN4$NumReads),as.integer(countsUPN5$NumReads),as.integer(countsUPN6$NumReads),as.integer(countsUPNRES1$NumReads),as.integer(countsUPNRES2$NumReads),as.integer(countsUPNRES3$NumReads),as.integer(countsUPNRES4$NumReads),as.integer(countsUPNRES5$NumReads),as.integer(countsUPNRES6$NumReads),as.integer(countsREC1$NumReads),as.integer(countsREC2$NumReads),as.integer(countsREC3$NumReads),as.integer(countsREC4$NumReads),as.integer(countsREC5$NumReads),as.integer(countsREC6$NumReads),as.integer(countsJEKO1$NumReads),as.integer(countsJEKO2$NumReads),as.integer(countsJEKO3$NumReads),as.integer(countsJEKO4$NumReads),as.integer(countsJEKO5$NumReads),as.integer(countsJEKO6$NumReads),as.integer(countsMINO1$NumReads),as.integer(countsMINO2$NumReads),as.integer(countsMINO3$NumReads))
+
+rownames(countsFinal) <- countsUPN1$Name
+colnames(countsFinal) <- c("UPN1","UPN2","UPN3","UPN4","UPN5","UPN6","UPNRES1","UPNRES2","UPNRES3","UPNRES4","UPNRES5","UPNRES6","REC1","REC2","REC3","REC4","REC5","REC6","JEKO1","JEKO2","JEKO3","JEKO4","JEKO5","JEKO6","MINO1","MINO2","MINO3")
+
+
+#write.table(countsFinal, file="/Users/jparra/Documents/Gael/BTKSinergy/countsFinalAll.csv", sep=",", row.names=TRUE, col.names=TRUE)
+
+countsFinal <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/countsFinalAll.csv", sep = ",")
+meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+
+```
+
+
+
+
+
+```{r biomaRt}
+
+countsFinal <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/countsFinalAll.csv", sep = ",")
+meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+library(biomaRt)
+ listMarts()
+listMarts(mart = NULL, host="www.ensembl.org", path="/biomart/martservice", port=80, includeHosts = FALSE, archive=FALSE, verbose = FALSE)
+
+mart <- useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+
+x <- strsplit(rownames(countsFinal), ".", fixed=T)
+
+y<- c()
+for (i in 1:194142) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+#listAttributes(mart)
+IDs <- getBM(attributes = c("ensembl_transcript_id","hgnc_symbol","hgnc_id","transcript_is_canonical","definition_1006"),
+                 filters = "ensembl_transcript_id", values = y,mart = mart) # Obtengo duplicados
+
+IDs2 <- getBM(attributes = c("ensembl_transcript_id","hgnc_symbol","hgnc_id","transcript_is_canonical","definition_1006","description"),
+                 filters = "ensembl_transcript_id", values = y,mart = mart) # Obtengo duplicados
+IDs$hgnc_id <- gsub("HGNC:", "", IDs$hgnc_id)
+
+IDsCanonical <- IDs[IDs$transcript_is_canonical %in% "1",]
+# IDs[IDs$ensembl_transcript_id %in% "ENST00000612067",] Esta duplicado, perdemos un nombre de gen en este transcrito, en total 9.
+
+#IDsUnique <- IDs[!duplicated(IDs$ensembl_transcript_id),]  #Elimino duplicados
+
+#countsFinalCNvsONCO <- as.data.frame(countsFinalCNvsONCO)
+
+#countsFinalCNvsONCO$TRANSCRIPT_ID  <-   IDs$ensembl_transcript_id[match(rownames(countsFinalCNvsONCO) , IDs$ensembl_transcript_id) ]
+
+#countsFinalCNvsONCO$GENES  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+
+#Asigno nombre a todos los transcritos menos 7352. 194142 - 7352 = 186790. Antes solo asignaba 30.000, por lo tanto mucho mejor.
+
+#Contiene canonica
+#names[grepl("canonica", names, fixed=TRUE)]
+
+listAttributes(mart)
+
+IDs <- getBM(attributes = c("ensembl_transcript_id","hgnc_symbol","hgnc_id","transcript_is_canonical","uniprot_sptrembl"),
+                 filters = "ensembl_transcript_id", values = y,mart = mart) # Obtengo duplicados
+
+
+IDs[IDs$hgnc_symbol %in% "CAMK1D",]
+
+
+
+
+
+
+#uniprot
+ listMarts()
+uniProt <- useMart(biomart = "uniprot_mart", dataset = "uniprot")
+
+getBM(attributes = c ("name", "go_id", "go_name"), values = "E9HCD7", filter = "accession", mart = uniProt)
+
+
+#-Sinergia con jeko rec
+#-geo2R
+#-Kegg
+
+
+
+uniProt <- useMart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl")
+listAttributes(mart)
+
+
+IDs <- getBM(attributes = c("ensembl_transcript_id","hgnc_symbol","hgnc_id","transcript_is_canonical"),
+                 filters = "ensembl_transcript_id", values = y,mart = mart)
+
+
+
+IDs <- getBM(attributes = c("ensembl_transcript_id","hgnc_symbol","hgnc_id","transcript_is_canonical","uniprot_gn_id"),
+                 filters = "ensembl_transcript_id", values = y,mart = mart)
+
+
+
+
+
+#https://www.syngoportal.org/convert
+
+idmap <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/idmap.csv", sep = ",")
+
+CNvsOnco <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/final_toptables_No_Res (1)CNvsOnco.csv", sep = ",")
+
+CNvsOncoSigni <- CNvsOnco[CNvsOnco$P.Value < 0.01,]
+
+#CNvsOncoSigni$geneName <- idmap$name[idmap$query %in% CNvsOncoSigni$accession]
+
+
+
+
+
+x <- strsplit(CNvsOncoSigni$accession, "|", fixed=T)
+
+
+
+#x[[2]][1]
+
+#x[[1:474]]
+
+y<- c()
+for (i in 1:101) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+CNvsOncoSigni$geneName <- idmap$name[idmap$query %in% y]
+
+#CNvsOncoSigni$geneName <- idmap$name[match(idmap$query, y)]
+CNvsOncoSigni$geneName <- idmap$symbol[match(y,idmap$query)]
+CNvsOncoSigni$description <- idmap$name[match(y,idmap$query)]
+
+
+idmap[idmap$query %in% "Q08999",]
+
+y
+
+
+
+
+ranks <- cbind(CNvsOncoSigni$geneName,CNvsOncoSigni$P.Value)
+
+
+
+#a
+
+
+```
+
+
+
+
+##  TPM
+
+
+```{r TPM}
+
+#TMP ALL
+
+countsFinalTPM <- cbind(as.integer(countsUPN1$TPM),as.integer(countsUPN2$TPM),as.integer(countsUPN3$TPM),as.integer(countsUPN4$TPM),as.integer(countsUPN5$TPM),as.integer(countsUPN6$TPM),as.integer(countsUPNRES1$TPM),as.integer(countsUPNRES2$TPM),as.integer(countsUPNRES3$TPM),as.integer(countsUPNRES4$TPM),as.integer(countsUPNRES5$TPM),as.integer(countsUPNRES6$TPM),as.integer(countsREC1$TPM),as.integer(countsREC2$TPM),as.integer(countsREC3$TPM),as.integer(countsREC4$TPM),as.integer(countsREC5$TPM),as.integer(countsREC6$TPM),as.integer(countsJEKO1$TPM),as.integer(countsJEKO2$TPM),as.integer(countsJEKO3$TPM),as.integer(countsJEKO4$TPM),as.integer(countsJEKO5$TPM),as.integer(countsJEKO6$TPM),as.integer(countsMINO1$TPM),as.integer(countsMINO2$TPM),as.integer(countsMINO3$TPM))
+
+
+
+x <- strsplit(rownames(countsFinalTPM), ".", fixed=T)
+
+#y<- c()
+for (i in 1:194142) {
+  #print(i)
+  rownames(countsFinalTPM)[i] <- x[[i]][1]
+}
+
+
+#rownames(countsFinalTPM) <- countsUPN1$Name
+colnames(countsFinalTPM) <- c("UPN1","UPN2","UPN3","UPN4","UPN5","UPN6","UPNRES1","UPNRES2","UPNRES3","UPNRES4","UPNRES5","UPNRES6","REC1","REC2","REC3","REC4","REC5","REC6","JEKO1","JEKO2","JEKO3","JEKO4","JEKO5","JEKO6","MINO1","MINO2","MINO3")
+
+
+write.table(countsFinalTPM, file="/Users/jparra/Documents/Gael/BTKSinergy/countsFinalTPM.csv", sep=",", row.names=TRUE, col.names=TRUE)
+
+
+
+```
+
+
+
+##  TPM difernete orden 
+
+
+```{r TPM}
+
+#TMP ALL
+
+countsFinalTPM <- cbind(
+  as.integer(countsJEKO1$TPM),as.integer(countsJEKO2$TPM),as.integer(countsJEKO3$TPM),as.integer(countsJEKO4$TPM),as.integer(countsJEKO5$TPM),as.integer(countsJEKO6$TPM),
+as.integer(countsMINO1$TPM),as.integer(countsMINO2$TPM),as.integer(countsMINO3$TPM),
+as.integer(countsUPN1$TPM),as.integer(countsUPN2$TPM),as.integer(countsUPN3$TPM),as.integer(countsUPN4$TPM),as.integer(countsUPN5$TPM),as.integer(countsUPN6$TPM),
+as.integer(countsREC1$TPM),as.integer(countsREC2$TPM),as.integer(countsREC3$TPM),as.integer(countsREC4$TPM),as.integer(countsREC5$TPM),as.integer(countsREC6$TPM),                        as.integer(countsUPNRES1$TPM),as.integer(countsUPNRES2$TPM),as.integer(countsUPNRES3$TPM),as.integer(countsUPNRES4$TPM),as.integer(countsUPNRES5$TPM),as.integer(countsUPNRES6$TPM))
+
+
+countsFinalTPM2<- as.data.frame(countsFinalTPM2)
+
+x <- strsplit(rownames(countsFinal), ".", fixed=T) #count final no TPM!!!
+
+#y<- c()
+for (i in 1:194142) {
+  #print(i)
+  rownames(countsFinalTPM)[i] <- x[[i]][1]
+}
+countsFinalTPM2 <- countsFinalTPM
+colnames(countsFinalTPM2) <- c("transcript","JEKO1","JEKO2","JEKO3","JEKO4","JEKO5","JEKO6" ,"MINO1","MINO2","MINO3","UPN1","UPN2","UPN3","UPN4","UPN5","UPN6","REC1","REC2","REC3","REC4","REC5","REC6","UPNRES1","UPNRES2","UPNRES3","UPNRES4","UPNRES5","UPNRES6")
+
+
+write.table(countsFinalTPM, file="/Users/jparra/Documents/Gael/BTKSinergy/countsFinalTPM2.csv", sep=",", row.names=TRUE, col.names=TRUE)
+
+write.table(countsFinalTPM2, file="/Users/jparra/Documents/Gael/BTKSinergy/countsFinalTPM2.txt", sep="\t", row.names=TRUE, col.names=TRUE, quote = F )
+
+
+
+```
+
+
+
+#DeSeq
+
+
+```{r DeSeq}
+
+#https://lashlock.github.io/compbio/R_presentation.html
+
+countsFinal <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/countsFinalAll.csv", sep = ",")
+meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+
+#DeSeq
+library("DESeq2")
+
+meta$CELL.LINE<- as.factor(meta$CELL.LINE)
+meta$TREATMENT<- as.factor(meta$TREATMENT)
+
+dds <- DESeqDataSetFromMatrix(countData = countsFinal,
+                              colData = meta,
+                              #design= ~ CELL.LINE + TREATMENT)
+                              design= ~ 0 + TREATMENT + CELL.LINE)
+
+
+#Plot counts
+#plotCounts(dds, gene=which.min(res$padj), intgroup="TREATMENT")
+
+
+
+#4 Exploratory analysis and visualization
+
+nrow(dds)
+## 194142
+keep <- rowSums(counts(dds)) > 1
+dds <- dds[keep,]
+nrow(dds)
+#145954
+
+
+# VST  variance stabilizing transformation 
+vsd <- vst(dds, blind = FALSE)
+
+
+
+library("genefilter")
+topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 200)
+mat  <- assay(vsd)[ topVarGenes, ]
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+library(pheatmap)
+
+x <- strsplit(rownames(mat), ".", fixed=T)
+
+y<- c()
+for (i in 1:200) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+rownames(mat)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+pheatmap(mat, annotation_col = anno)
+
+plot <-pheatmap(mat, annotation_col = anno, fontsize_row = 12,cutree_rows=5, fontsize_col = 20)
+library(ggplot2)
+ggsave(plot, filename = "/Users/jparra/Documents/Gael/BTKSinergy/GraficaAll.pdf", device = cairo_pdf, 
+       width = 40, height = 30, units = "in")
+
+
+
+
+plot.clust <- cbind(mat,cluster = cutree(plot$tree_row,k = 5))
+write.table(plot.clust, "/Users/jparra/Documents/Gael/BTKSinergy/pheatmapGenes.csv", sep = ",", row.names = TRUE)
+
+
+#genes for fgsea
+
+plot.clust<- as.data.frame(plot.clust)
+genesCluster1 <- rownames(plot.clust)[plot.clust$cluster %in% 1]
+
+genesCluster3 <- rownames(plot.clust)[plot.clust$cluster %in% 3]
+genesCluster3 <- as.data.frame(genesCluster3)
+genesCluster3$UPN1 <- plot.clust$UPN1[plot.clust$cluster %in% 3]
+
+
+rownames(genesCluster3) <- uniqueIDs$hgnc_id[uniqueIDs$hgnc_symbol %in% genesCluster3$genesCluster3]
+rownames(genesCluster3) <- uniqueIDs$hgnc_id[genesCluster3$genesCluster3 %in% uniqueIDs$hgnc_symbol]
+
+
+genesCluster3Sub <- genesCluster3[genesCluster3$genesCluster3 %in% uniqueIDs$hgnc_symbol,]
+
+rownames(genesCluster3Sub) <- uniqueIDs$hgnc_id[uniqueIDs$hgnc_symbol %in% genesCluster3$genesCluster3]
+
+
+
+genesCluster4 <- rownames(plot.clust)[plot.clust$cluster %in% 4]
+
+genesMINO <- c(genesCluster3,genesCluster4)
+
+#IDs$hgnc_symbol[match("ENST00000393394" ,IDs$ensembl_transcript_id)]
+
+
+#tx2gene$GENEID[match("ENST00000393394.5" ,tx2gene$TXNAME)]  # ENSG00000273673
+
+
+#IDs$hgnc_symbol[match("ENST00000393394" ,IDs)]
+
+
+
+
+
+
+##FGSEA
+
+library(fgsea)
+
+
+
+ranks <- cbind(uniqueRes$t, uniqueRes$ID,uniqueRes$logFC)
+ranks<- as.data.frame(ranks)
+ranks$V3 <- as.numeric(ranks$V3)
+ranks$V4 <- abs(ranks$V3)
+ranks <- ranks[order(ranks$V4,decreasing = T),]
+
+#IDs$hgnc_id <- gsub("HGNC:", "", IDs$hgnc_id)
+
+ranks$V5 <- uniqueIDs$hgnc_id[uniqueIDs$hgnc_symbol %in% ranks$V2]
+ranks$V1 <- as.numeric(ranks$V1)
+ranks <- setNames(ranks$V1, ranks$V5)
+
+#rownames(ranks) <- uniqueIDs$hgnc_id[uniqueIDs$hgnc_symbol %in% ranks$V2]
+
+uniqueIDs <- IDs[!duplicated(IDs$hgnc_id),]
+
+
+pathways <- gmtPathways("/Users/jparra/Documents/Gael/BTKSinergy/msigdb.v2023.1.Hs.entrez.gmt")
+
+fgseaRes <- fgsea(pathways = pathways, 
+                  stats    = genesCluster3ranks,
+                  minSize  = 2,
+                  maxSize  = 1500)
+
+
+library(ggplot2)
+plotEnrichment(pathways[["IRF1_Q6"]],ranks)  + labs(title="IRF1_Q6")
+
+plotEnrichment(pathways[["PUJANA_BRCA1_PCC_NETWORK"]],ranks)  + labs(title="PUJANA_BRCA1_PCC_NETWORK") #Porque es tan poco significativo?
+
+fgseaRes <- fgseaRes[order(fgseaRes$pval),]
+
+write.table(fgseaRes[,1:7], file="/Users/jparra/Documents/Gael/BTKSinergy/fgseaResALLibruVSonco.csv", sep=",", row.names=F, col.names=TRUE)
+
+
+
+
+
+
+
+
+
+#Deseq
+
+#heatmap con desing de mino
+meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+meta$MINOCL<- as.factor(meta$MINOCL)
+
+meta$CELL.LINE<- as.factor(meta$CELL.LINE)
+meta$TREATMENT<- as.factor(meta$TREATMENT)
+
+
+
+#dds con desing de mino
+dds <- DESeqDataSetFromMatrix(countData = countsFinal,
+                              colData = meta,
+                              design= ~ MINOCL)
+
+# VST  variance stabilizing transformation 
+vsd <- vst(dds, blind = FALSE)
+
+
+
+library("genefilter")
+topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 200)
+mat  <- assay(vsd)[ topVarGenes, ]
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+library(pheatmap)
+
+x <- strsplit(rownames(mat), ".", fixed=T)
+
+y<- c()
+for (i in 1:200) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+rownames(mat)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+pheatmap(mat, annotation_col = anno)
+
+
+
+
+
+
+
+
+
+dds <- DESeq(dds)
+#res <- results(dds)
+#res <- results(dds, name="condition_treated_vs_untreated")
+
+#numericVector <- c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1)
+
+#resultsNames(dds)
+#res <- results(dds, contrast=c("CELL.LINE","UPN-1",c("UPN-1_RES","REC-1")))
+#res <- results(dds, contrast=c("MINOCL","NO","SI"))
+res <- results(dds, name="MINOCL_SI_vs_NO")
+
+#resOrdered <- res[order(res$pvalue),]
+resOrdered <- res[order(res$log2FoldChange),]
+resOrdered <- res[order(res$log2FoldChange, decreasing = TRUE),]
+
+
+resOrderedDF <- as.data.frame(resOrdered)
+
+resOrderedDF<- na.omit(resOrderedDF)
+
+
+
+resOrderedFilter <- resOrderedDF[resOrderedDF$padj < 0.05 & resOrderedDF$log2FoldChange > 10,]
+resOrderedFilter <- resOrderedDF[resOrderedDF$padj < 0.05 & resOrderedDF$log2FoldChange < -10,]
+#Hay 10 veces mas genes con logFC negativo, es decir que la expresion es mas baja en las que no? son mino
+
+resOrderedFilter <- resOrderedDF[resOrderedDF$padj < 0.05 & (resOrderedDF$log2FoldChange < -10 | resOrderedDF$log2FoldChange > 10) ,]
+
+
+resOrderedFilter
+
+
+
+x <- strsplit(rownames(resOrderedFilter), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(resOrderedFilter)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+resOrderedFilter$genes  <-   IDs$hgnc_id[match(y ,IDs$ensembl_transcript_id)]
+
+resOrderedFilter <- resOrderedFilter[!duplicated(resOrderedFilter$genes),]
+
+#resOrderedFilter$log2FoldChange <- as.numeric(resOrderedFilter$log2FoldChange)
+
+ranks <- setNames(resOrderedFilter$log2FoldChange,resOrderedFilter$genes)
+
+
+pathways <- gmtPathways("/Users/jparra/Documents/Gael/BTKSinergy/msigdb.v2023.1.Hs.entrez.gmt")
+
+fgseaRes <- fgsea(pathways = pathways, 
+                  stats    = ranks,
+                  minSize  = 2,
+                  maxSize  = 1500)
+
+
+
+fgseaRes[fgseaRes$pathway %in% "HP_ABNORMALITY_OF_THALAMUS_MORPHOLOGY",]
+
+GOpathways <- gmtPathways("/Users/jparra/Documents/Gael/BTKSinergy/c5.all.v2023.1.Hs.entrez.gmt")
+
+fgseaResGO <- fgsea(pathways = GOpathways, 
+                  stats    = ranks,
+                  minSize  = 2,
+                  maxSize  = 1500)
+
+fgseaResGO[fgseaResGO$pathway %in% "HP_ABNORMALITY_OF_THALAMUS_MORPHOLOGY",] #El valor ajustado cambio mucho segun los pathways.
+
+
+plotEnrichment(pathways[["GOBP_MAPK_CASCADE"]],ranks)  + labs(title="GOBP_MAPK_CASCADE")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#result MINO vs todas 
+#Hacer una nueva columna en excel o probar vector numerico.
+
+
+meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+meta$MINOCL<- as.factor(meta$MINOCL)
+
+meta$CELL.LINE<- as.factor(meta$CELL.LINE)
+meta$TREATMENT<- as.factor(meta$TREATMENT)
+
+dds <- DESeqDataSetFromMatrix(countData = countsFinal,
+                              colData = meta,
+                              design= ~ MINOCL)
+
+
+
+
+library(DESeq2)
+
+#Deseq
+dds <- DESeq(dds)
+#res <- results(dds)
+#res <- results(dds, name="condition_treated_vs_untreated")
+
+#numericVector <- c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1)
+
+#resultsNames(dds)
+#res <- results(dds, contrast=c("CELL.LINE","UPN-1",c("UPN-1_RES","REC-1")))
+#res <- results(dds, contrast=c("MINOCL","NO","SI"))
+res <- results(dds, name="MINOCL_SI_vs_NO")
+
+#resOrdered <- res[order(res$pvalue),]
+resOrdered <- res[order(res$log2FoldChange),]
+resOrdered <- res[order(res$log2FoldChange, decreasing = TRUE),]
+
+
+resOrderedDF <- as.data.frame(resOrdered)
+
+resOrderedDF<- na.omit(resOrderedDF)
+
+
+
+resOrderedFilter <- resOrderedDF[resOrderedDF$padj < 0.05 & resOrderedDF$log2FoldChange > 10,]
+resOrderedFilter <- resOrderedDF[resOrderedDF$padj < 0.05 & resOrderedDF$log2FoldChange < -10,]
+#Hay 10 veces mas genes con logFC negativo, es decir que la expresion es mas baja en las que no? son mino
+
+resOrderedFilter <- resOrderedDF[resOrderedDF$padj < 0.05 & (resOrderedDF$log2FoldChange < -10 | resOrderedDF$log2FoldChange > 10) ,]
+
+
+resOrderedFilter
+
+
+
+x <- strsplit(rownames(resOrderedFilter), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(resOrderedFilter)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+resOrderedFilter$genes  <-   IDs$hgnc_id[match(y ,IDs$ensembl_transcript_id)]
+
+resOrderedFilter <- resOrderedFilter[!duplicated(resOrderedFilter$genes),]
+
+#resOrderedFilter$log2FoldChange <- as.numeric(resOrderedFilter$log2FoldChange)
+
+ranks <- setNames(resOrderedFilter$log2FoldChange,resOrderedFilter$genes)
+
+
+pathways <- gmtPathways("/Users/jparra/Documents/Gael/BTKSinergy/msigdb.v2023.1.Hs.entrez.gmt")
+
+fgseaRes <- fgsea(pathways = pathways, 
+                  stats    = ranks,
+                  minSize  = 2,
+                  maxSize  = 1500)
+
+
+
+fgseaRes[fgseaRes$pathway %in% "HP_ABNORMALITY_OF_THALAMUS_MORPHOLOGY",]
+
+GOpathways <- gmtPathways("/Users/jparra/Documents/Gael/BTKSinergy/c5.all.v2023.1.Hs.entrez.gmt")
+
+fgseaResGO <- fgsea(pathways = GOpathways, 
+                  stats    = ranks,
+                  minSize  = 2,
+                  maxSize  = 1500)
+
+fgseaResGO[fgseaResGO$pathway %in% "HP_ABNORMALITY_OF_THALAMUS_MORPHOLOGY",] #El valor ajustado cambio mucho segun los pathways.
+
+
+plotEnrichment(pathways[["GOBP_MAPK_CASCADE"]],ranks)  + labs(title="GOBP_MAPK_CASCADE")
+plotEnrichment(pathways[["KRIGE_RESPONSE_TO_TOSEDOSTAT_6HR_DN"]],ranks)  + labs(title="KRIGE_RESPONSE_TO_TOSEDOSTAT_6HR_DN")
+plotEnrichment(pathways[["REACTOME_METABOLISM_OF_RNA"]],ranks)  + labs(title="REACTOME_METABOLISM_OF_RNA")
+plotEnrichment(pathways[["GOBP_MRNA_METABOLIC_PROCESS"]],ranks)  + labs(title="GOBP_MRNA_METABOLIC_PROCESS")
+
+#En las mino la ruta de la cascada mapk esta mas activa. Tiene el mismo orden de genes sobre e infra expresados.
+
+
+countsFinal[rownames(countsFinal) %in% "ENST00000390309.2",] #FC 16, mas expresado en las mino. Inmune response> https://genome-euro.ucsc.edu/cgi-bin/hgGene?hgg_gene=ENST00000390309.2&hgg_prot=uc062ccx.1&hgg_chrom=chr22&hgg_start=22720622&hgg_end=22721145&db=hg38&hgsid=252997893_8AqaM6NfKtGEMaCty7KWt76zkQA6
+
+countsFinal[rownames(countsFinal) %in% "ENST00000617374.2",] #Mucho mas expresada en las jeko!
+
+
+countsFinal[rownames(countsFinal) %in% "ENST00000632980.1",] #mas expresado en las mino
+
+countsFinal[rownames(countsFinal) %in% "ENST00000682453.1",] #las downregulas son mucho menos especificas de MINO
+
+#Como en el grupo de mino solo hay 3 vs 24, cogemos un FC mas bajo de sobreexpresaas en mino
+resOrderedFilter <- resOrderedDF[resOrderedDF$padj < 0.05 & (resOrderedDF$log2FoldChange < -22 | resOrderedDF$log2FoldChange > 7) ,]
+
+
+
+x <- strsplit(rownames(resOrderedFilter), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(resOrderedFilter)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+resOrderedFilter$genes  <-   IDs$hgnc_id[match(y ,IDs$ensembl_transcript_id)]
+resOrderedFilter <- resOrderedFilter[!duplicated(resOrderedFilter$genes),]
+ranks <- setNames(resOrderedFilter$log2FoldChange,resOrderedFilter$genes)
+
+fgseaRes <- fgsea(pathways = pathways, 
+                  stats    = ranks,
+                  minSize  = 5,
+                  maxSize  = 1500)
+
+fgseaResGO <- fgsea(pathways = GOpathways, 
+                  stats    = ranks,
+                  minSize  = 5,
+                  maxSize  = 1500)
+#Obtengo solo 3 significativas que son del ciclo celular.
+
+#Selecciono con p.value mas bajo y ordeno por FC.
+
+resOrderedFilter <- resOrderedDF[resOrderedDF$padj < 0.000000000005,]
+
+
+
+countsFinal[rownames(countsFinal) %in% "ENST00000390237.2",] #las downregulas son mucho menos especificas de MINO
+
+x <- strsplit(rownames(resOrderedFilter), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(resOrderedFilter)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+resOrderedFilter$genes  <-   IDs$hgnc_id[match(y ,IDs$ensembl_transcript_id)]
+resOrderedFilter <- resOrderedFilter[!duplicated(resOrderedFilter$genes),]
+ranks <- setNames(resOrderedFilter$log2FoldChange,resOrderedFilter$genes)
+
+fgseaRes <- fgsea(pathways = pathways, 
+                  stats    = ranks,
+                  minSize  = 5,
+                  maxSize  = 1500)
+
+
+
+
+
+
+#Sin filtrar por p.valor o FC
+x <- strsplit(rownames(resOrderedDF), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(resOrderedDF)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+resOrderedDF$genes  <-   IDs$hgnc_id[match(y ,IDs$ensembl_transcript_id)]
+resOrderedDF <- resOrderedDF[!duplicated(resOrderedDF$genes),]
+ranks <- setNames(resOrderedDF$log2FoldChange,resOrderedDF$genes)
+
+fgseaRes <- fgsea(pathways = pathways, 
+                  stats    = ranks,
+                  minSize  = 5,
+                  maxSize  = 1500)
+
+
+plotEnrichment(pathways[["REACTOME_MAPK6_MAPK4_SIGNALING"]],ranks)  + labs(title="REACTOME_MAPK6_MAPK4_SIGNALING")
+#Solo aparecen los genes downregulated. Podria mirar a mano el resto de genes de la ruta.
+
+
+
+#Coger del heatmpa los lcuster 3 y 4 y ordenarlos por fc.
+
+
+
+
+
+
+
+
+#annotsFull <- select(org.Hs.eg.db, keys=y, columns="SYMBOL", keytype="ENSEMBLTRANS",uniqueRows=TRUE ,multiVals=T)
+
+#rownames(res)[rownames(res) %in% "ENST00000443402"]               #No busca que contenga, lo hacemos con:
+#rownames(res)[grepl("ENST00000645145", rownames(res), fixed=TRUE)]
+
+library(dplyr)
+#countsFinalGenesSinNA <- na.omit(rownames(countsFinalGenes))
+#countsFinalGenes[rownames(countsFinalGenes) %in% "NA" ]
+#countsFinalGenesSinNA <- countsFinalGenes[!grepl("NA", rownames(countsFinalGenes), fixed=TRUE)]
+#countsFinalGenesSinNA <- countsFinalGenes[!is.na(rownames(countsFinalGenes)),]
+
+
+#Pasamos de 194142 transcritos diferents a 32509 genes correspondientes no diferentes.
+
+
+#rownames(countsFinalGenesSinNA)[duplicated(rownames(countsFinalGenesSinNA))]
+#A parte de perder muchos transcritos, tenog genes repetidos, emjor hacer el deSeq con transritos y luego mirar esos transcritos que genes son!
+
+
+
+```
+
+
+##Solo canonical transcripts
+
+```{r 3}
+
+
+countsFinal <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/countsFinalAll.csv", sep = ",")
+meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+
+#DeSeq
+library("DESeq2")
+
+meta$CELL.LINE<- as.factor(meta$CELL.LINE)
+meta$TREATMENT<- as.factor(meta$TREATMENT)
+
+
+x <- strsplit(rownames(countsFinal), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(countsFinal)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+rownames(countsFinal) <- y
+
+
+countsFinal <- countsFinal[rownames(countsFinal) %in% IDs$ensembl_transcript_id,]
+
+dds <- DESeqDataSetFromMatrix(countData = countsFinal,
+                              colData = meta,
+                              #design= ~ CELL.LINE + TREATMENT)
+                              design= ~ MINOCL)
+
+
+
+#4 Exploratory analysis and visualization
+
+nrow(dds)
+## 194142
+keep <- rowSums(counts(dds)) > 1
+dds <- dds[keep,]
+nrow(dds)
+#145954
+
+
+# VST  variance stabilizing transformation 
+vsd <- vst(dds, blind = FALSE)
+
+
+
+library("genefilter")
+topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 400)
+mat  <- assay(vsd)[ topVarGenes, ]
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+library(pheatmap)
+
+x <- strsplit(rownames(mat), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(mat)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+mat <- as.data.frame(mat)
+mat$genes  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+#rownames(mat)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)] Cambia los guiones por puntos
+
+#pheatmap(mat, annotation_col = anno)
+pheatmap(mat[,1:27], annotation_col = anno)
+
+
+library(ggplot2)
+plot <-pheatmap(mat[,1:27], annotation_col = anno, fontsize_row = 8,cutree_rows=12, fontsize_col = 20)
+#plot <-pheatmap(mat)
+
+ggsave(plot, filename = "/Users/jparra/Documents/Gael/BTKSinergy/GraficaAll2.pdf", device = cairo_pdf, 
+       width = 40, height = 30, units = "in")
+
+ plot.clust <- cbind(mat, cluster = cutree(plot$tree_row,k = 12))
+
+cluster = cutree(plot$tree_row, k = 12)
+#cluster[[1]]
+
+
+
+#Cojo los genes de los cluster 8 y 10
+clusterDF <-data.frame(keyName=names(cluster), value=cluster, row.names=NULL)
+#write.table(clusterDF, "/Users/jparra/Documents/Gael/BTKSinergy/pheatmapGenes2.csv", sep = ",", row.names = TRUE)
+
+
+genesCluster8 <- clusterDF$keyName[clusterDF$value %in% 1]
+
+genesCluster10 <- plot.clust$genes[plot.clust$cluster %in% 1]
+
+#Los numeros de cluster no siguen el orden de la grafica.
+clusterDF[clusterDF$keyName %in% "BMP7",] #El octavo cluster es el cluster 7.
+
+clusterDF[clusterDF$keyName %in% "SLA",] # El decimo es el numero 5.
+
+genesCluster8 <- clusterDF$keyName[clusterDF$value %in% 7]
+genesCluster10 <- plot.clust$genes[plot.clust$cluster %in% 5]
+
+genes <- c(genesCluster8,genesCluster10)
+
+#Busco estos genes mas diferencialmente espresados en mino en el results.
+
+dds <- DESeq(dds)
+res <- results(dds, name="MINOCL_SI_vs_NO")
+
+
+
+resOrdered <- res[order(res$log2FoldChange, decreasing = TRUE),]
+
+
+resOrderedDF <- as.data.frame(resOrdered)
+
+
+#Sin filtrar por p.valor o FC
+x <- strsplit(rownames(resOrderedDF), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(resOrderedDF)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+resOrderedDF$genes  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+resOrderedDF$genesID  <-   IDs$hgnc_id[match(y ,IDs$ensembl_transcript_id)]
+
+resOrderedDFGenes <- resOrderedDF[resOrderedDF$genes %in% genes,]
+
+#genesId <- IDs[match(genes ,IDs$hgnc_symbol),]
+
+resOrderedDFGenes <- resOrderedDFGenes[order(resOrderedDFGenes$log2FoldChange, decreasing = TRUE),]
+
+write.table(resOrderedDFGenes, file="/Users/jparra/Documents/Gael/BTKSinergy/resOrderedDFGenes.csv", sep=",", row.names=TRUE)
+
+
+#ranks <- resOrderedDF$genes
+
+
+#genes
+
+#IDs$hgnc_symbol[grepl("HLA-DQA1", IDs$hgnc_symbol, fixed=TRUE)]
+
+library(fgsea)
+pathways <- gmtPathways("/Users/jparra/Documents/Gael/BTKSinergy/msigdb.v2023.1.Hs.entrez.gmt")
+
+
+#ranks <- setNames(resOrderedDFGenes$log2FoldChange,resOrderedDFGenes$genesID)
+ranks <- setNames(resOrderedDFGenes$stat,resOrderedDFGenes$genesID)
+
+ranks <- ranks[order(ranks,decreasing = T)]
+
+str(ranks)
+fgseaRes <- fgsea(pathways = pathways, 
+                  stats    = ranks,
+                  minSize  = 5,
+                  maxSize  = 1500)
+
+
+
+
+#GOpathways <- gmtPathways("/Users/jparra/Documents/Gael/BTKSinergy/c5.all.v2023.1.Hs.entrez.gmt")
+
+
+#fgseaRes <- fgsea(pathways = GOpathways, 
+#                  stats    = ranks,
+#                  minSize  = 5,
+#                  maxSize  = 1500)
+
+
+
+
+
+
+
+
+plotEnrichment(pathways[["GOBP_PHOSPHORYLATION"]],ranks)  + labs(title="GOBP_PHOSPHORYLATION")
+
+#heatmap genes ruta interes
+
+listaGenes <- fgseaRes$leadingEdge[match("GOBP_PHOSPHORYLATION",fgseaRes$pathway)]
+
+
+#countsFinal <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/countsFinalAll.csv", sep = ",")
+#meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+
+samplesNames <- c("UPN1","UPNRES1","REC1","JEKO1","MINO1")
+#samplesNames <- c("UPN1","UPN2","UPN3","UPN4","UPN5","UPN6") #No se puede hacer eBayes sin duplicados!!!
+counts  <-   countsFinal[,match(samplesNames ,colnames(countsFinal))]
+
+metaSub  <-   meta[match(samplesNames ,meta$ID),]
+
+row.names(metaSub) <- metaSub$ID
+metaSub <- metaSub[match(colnames(counts), row.names(metaSub)), ]
+
+
+
+x <- strsplit(rownames(counts), ".", fixed=T)
+y<- c()
+for (i in 1:dim(counts)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+rownames(counts)  <-   y
+
+listaGenes <- as.data.frame(listaGenes)
+
+IDsCanonical <- IDs[IDs$transcript_is_canonical %in% "1",]
+
+transcript <- IDs$ensembl_transcript_id[match(listaGenes$c..1020....1778....8851....7436..,IDs$hgnc_id)]
+transcript <- IDsCanonical$ensembl_transcript_id[match(listaGenes$c..5903....5586....5933....5526....3192..,IDsCanonical$hgnc_id)]
+
+transcript <- IDs$ensembl_transcript_id[IDs$hgnc_id %in% listaGenes$c..5903....5586....5933....5526....3192..] #71??
+
+#countsGenes <- counts[match(rownames(counts), transcript),]
+
+countsGenes <- counts[rownames(counts) %in% transcript,]
+
+
+pheatmap(countsGenes)
+
+
+ordered
+x <- strsplit(rownames(ordered), ".", fixed=T)
+y<- c()
+for (i in 1:dim(ordered)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+rownames(ordered)  <-   y
+
+
+ordered$logFC[rownames(ordered) %in% transcript]
+
+str(ranks)
+```
+
+
+
+
+
+```{r 3}
+
+#Control vs onconova
+
+metaCNvsONCO <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconovaCNvsONCO.csv", row.names = 1)
+
+
+#5. Load data
+countsUPN1 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPN1_quant/quant.sf",sep = "\t")
+countsUPN2 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPN2_quant/quant.sf",sep = "\t")
+
+countsJEKO1 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/JEKO1_quant/quant.sf",sep = "\t")
+countsJEKO2 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/JEKO2_quant/quant.sf",sep = "\t")
+
+countsMINO1 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/MINO1_quant/quant.sf",sep = "\t")
+countsMINO2 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/MINO2_quant/quant.sf",sep = "\t")
+
+countsREC1 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/REC1_quant/quant.sf",sep = "\t")
+countsREC2 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/REC2_quant/quant.sf",sep = "\t")
+
+countsUPNRES1 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPNRES1_quant/quant.sf",sep = "\t")
+countsUPNRES2 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPNRES2_quant/quant.sf",sep = "\t")
+
+
+countsFinal<- c()
+countsFinalCNvsONCO <- cbind(as.integer(countsUPN1$NumReads),as.integer(countsUPN2$NumReads),as.integer(countsUPNRES1$NumReads),as.integer(countsUPNRES2$NumReads),as.integer(countsREC1$NumReads),as.integer(countsREC2$NumReads),as.integer(countsMINO1$NumReads),as.integer(countsMINO2$NumReads),as.integer(countsJEKO1$NumReads),as.integer(countsJEKO2$NumReads))
+
+rownames(countsFinalCNvsONCO) <- countsUPN1$Name
+colnames(countsFinalCNvsONCO) <- c("UPN1","UPN2","UPNRES1","UPNRES2","REC1","REC2","MINO1","MINO2","JEKO1","JEKO2")
+
+
+metaCNvsONCO$CELL.LINE<- as.factor(metaCNvsONCO$CELL.LINE)
+metaCNvsONCO$TREATMENT<- as.factor(metaCNvsONCO$TREATMENT)
+
+#saveRDS(countsFinalCNvsONCO, "/Users/jparra/Documents/Gael/BTKSinergy/countsFinalCNvsONCO.rds")
+
+
+countsFinalCNvsONCO <- readRDS("/Users/jparra/Documents/Gael/BTKSinergy/countsFinalCNvsONCO.rds")
+
+```
+
+
+
+
+
+
+
+#Todas menos mino y jeko.jeko porque no?
+#quito tambien las tratadas con abema
+
+```{r 3}
+
+ 
+
+#counts <- countsFinal[,1:18]
+
+counts <- countsFinal[,c(1,2,4,5,7,8,10,11,13,14,16,17,19,20,22,23)]
+
+
+meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+#metaSub <- meta[1:18,]
+
+metaSub <- meta[c(1,2,4,5,7,8,10,11,13,14,16,17,19,20,22,23),]
+
+
+metaSub$CELL.LINE<- as.factor(metaSub$CELL.LINE)
+metaSub$TREATMENT<- as.factor(metaSub$TREATMENT)
+
+dds <- DESeqDataSetFromMatrix(countData = counts,
+                              colData = metaSub,
+                              design= ~ CELL.LINE + TREATMENT)
+
+
+
+
+nrow(dds)
+## 194142
+keep <- rowSums(counts(dds)) > 1
+dds <- dds[keep,]
+nrow(dds)
+#132049
+
+
+# variance stabilizing transformation (VST)
+vsd <- vst(dds, blind = FALSE)
+
+
+
+#library("genefilter")
+#topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 20)
+#mat  <- assay(vsd)[ topVarGenes, ]
+#mat  <- mat - rowMeans(mat)
+#anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+#library(pheatmap)
+
+#x <- strsplit(rownames(mat), ".", fixed=T)
+
+#y<- c()
+#for (i in 1:20) {
+  #print(i)
+#  y[i] <- x[[i]][1]
+#}
+
+
+#pheatmap(mat, annotation_col = anno)
+#rownames(mat)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+#pheatmap(mat, annotation_col = anno)
+
+
+
+
+pcaData <- plotPCA(vsd, intgroup = c( "TREATMENT", "CELL.LINE"), returnData = TRUE)
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+
+#library(ggplot2)
+ggplot(pcaData, aes(x = PC1, y = PC2, color = TREATMENT, shape = CELL.LINE)) +
+  geom_point(size =3) +
+  xlab(paste0("PC1: ", percentVar[1], "% variance")) +
+  ylab(paste0("PC2: ", percentVar[2], "% variance")) +
+  coord_fixed() +
+  ggtitle("PCA with VST data")
+
+
+
+
+
+
+
+#PCA con TPM
+
+
+#Todas menos mino y jeko SOLO TREATMENT
+
+
+dds <- DESeqDataSetFromMatrix(countData = counts,
+                              colData = metaSub,
+                              design= ~ TREATMENT)
+
+
+
+
+nrow(dds)
+## 194142
+keep <- rowSums(counts(dds)) > 1
+dds <- dds[keep,]
+nrow(dds)
+#132049
+
+
+# variance stabilizing transformation (VST)
+vsd <- vst(dds, blind = FALSE)
+
+
+
+#library("genefilter")
+topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 20)
+mat  <- assay(vsd)[ topVarGenes, ]
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+#library(pheatmap)
+
+x <- strsplit(rownames(mat), ".", fixed=T)
+
+y<- c()
+for (i in 1:20) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+rownames(mat)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+pheatmap(mat, annotation_col = anno)
+
+
+```
+
+
+
+
+
+
+#UPN,REC,UPNRES
+
+
+```{r UPN,REC,UPNRES}
+
+samplesNames <- c("UPN1","UPN2","UPN3","UPN4","UPN5","UPN6","UPNRES1","UPNRES2","UPNRES3","UPNRES4","UPNRES5","UPNRES6","REC1","REC2","REC3","REC4","REC5","REC6") #Quiza deberia eliminar rec1 solo.
+
+counts  <-   countsFinal[,match(samplesNames ,colnames(countsFinal))]
+
+metaSub  <-   meta[match(samplesNames ,meta$ID),]
+
+
+dds <- DESeqDataSetFromMatrix(countData = counts,
+                              colData = metaSub,
+                              #design= ~ TREATMENT + CELL.LINE 
+                              #design= ~ CELL.LINE + TREATMENT   
+                              #design= ~ TREATMENT   
+                              #design= ~ CELL.LINE   
+                              design= ~ 0 + TREATMENT   
+                            #+ TREATMENT:CELL.LINE
+                              ) #FALLO
+
+
+
+
+nrow(dds)
+## 194142
+keep <- rowSums(counts(dds)) > 1
+dds <- dds[keep,]
+nrow(dds)
+#113640
+
+
+# variance stabilizing transformation (VST)
+#vsd <- vst(dds, blind = FALSE)
+vsd <- vst(dds, blind = T)
+
+
+
+#library("genefilter")
+topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 20)
+mat  <- assay(vsd)[ topVarGenes, ]
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+#library(pheatmap)
+
+x <- strsplit(rownames(mat), ".", fixed=T)
+
+y<- c()
+for (i in 1:20) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+rownames(mat)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+pheatmap(mat, annotation_col = anno)
+
+```
+
+
+#UNP1 vs UPNRES1
+
+
+```{r UNP1 vs UPNRES1 by cell.line}
+
+samplesNames <- c("UPN1","UPN2","UPNRES1","UPNRES2")
+
+counts  <-   countsFinal[,match(samplesNames ,colnames(countsFinal))]
+
+metaSub  <-   meta[match(samplesNames ,meta$ID),]
+
+
+#dds <- DESeqDataSetFromMatrix(countData = counts,
+                              #colData = metaSub,
+                              #design= ~ TREATMENT ) #Solo con tratamiento me separa UPN1 del resto
+
+
+
+
+#nrow(dds)
+## 194142
+#keep <- rowSums(counts(dds)) > 1
+#dds <- dds[keep,]
+#nrow(dds)
+#107676
+
+
+# variance stabilizing transformation (VST)
+#vsd <- vst(dds, blind = FALSE)
+
+
+
+#library("genefilter")
+#topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 20)
+#mat  <- assay(vsd)[ topVarGenes, ]
+#mat  <- mat - rowMeans(mat)
+#anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+#library(pheatmap)
+
+#x <- strsplit(rownames(mat), ".", fixed=T)
+
+#y<- c()
+#for (i in 1:20) {
+  #print(i)
+#  y[i] <- x[[i]][1]
+#}
+
+
+#rownames(mat)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+#pheatmap(mat, annotation_col = anno)
+
+
+
+#Treatment + cell.line. Separa por tratamiento. MEJOR RESULTADO
+#Parecen obtener le mismo heatmap cambiando el orden:
+
+dds <- DESeqDataSetFromMatrix(countData = counts,
+                              colData = metaSub,
+                              design= ~ TREATMENT + CELL.LINE) 
+                              #design= ~ CELL.LINE + TREATMENT) 
+
+
+
+
+nrow(dds)
+## 194142
+keep <- rowSums(counts(dds)) > 1
+dds <- dds[keep,]
+nrow(dds)
+#107676
+
+
+# variance stabilizing transformation (VST)
+vsd <- vst(dds, blind = FALSE)
+
+
+
+#library("genefilter")
+topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 100)
+mat  <- assay(vsd)[ topVarGenes, ]
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+
+x <- strsplit(rownames(mat), ".", fixed=T)
+
+y<- c()
+#for (i in 1:107676) {
+for (i in 1:100) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+rownames(mat)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+
+library(pheatmap)
+pheatmap(mat, annotation_col = anno)
+
+
+
+
+
+
+
+#plot <-pheatmap(mat, annotation_col = anno, fontsize_row = 12,cutree_rows=5)
+#library(ggplot2)
+#ggsave(plot, filename = "/Users/jparra/Documents/Gael/BTKSinergy/Graficas2.pdf", device = cairo_pdf, 
+     #  width = 40, height = 30, units = "in")
+
+
+
+#plot.clust <- cbind(mat, cluster = cutree(plot$tree_row,  k = 2))
+#write.table(plot.clust, "/Users/jparra/Documents/Gael/BTKSinergy/pheatmapGenes2.csv", sep = ",", row.names = TRUE)
+
+
+#Significancia¿? No se puede con 2 muestras.
+
+dds <- DESeq(dds)
+res <- results(dds)
+res
+
+# result definiendo contrast
+#res <- results(dds, contrast=c("TREATMENT","CONTROL","ON12300")) #aqui vemos la diferencia entre las tratadas y control
+res <- results(dds, contrast=c("CELL.LINE","UPN-1","UPN-1_RES")) #aqui vemos la diferencia entre lineas celulares
+
+
+
+#x <- strsplit(rownames(res), ".", fixed=T)
+#y<- c()
+#for (i in 1:107676) {
+#  y[i] <- x[[i]][1]
+#}
+
+#rownames(res) <- y
+
+#rownames(res)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+
+
+
+
+
+
+
+
+#IDs[IDs$hgnc_symbol  %in% "CCL22",]
+#res[rownames(res) %in% "ENST00000219235",]
+
+
+#IDs[IDs$hgnc_symbol  %in% "BIRC3",]
+
+#rownames(mat)[rownames(mat) %in% "ENST00000526421"]
+#rownames(mat)[rownames(mat) %in% "ENST00000263464"]
+
+#res[rownames(res) %in% "ENST00000526421",]
+#res[rownames(res) %in% "ENST00000263464",]
+
+
+
+
+
+
+#resOrdered <- res[order(res$log2FoldChange),]
+#resOrdered
+
+
+
+
+
+#result0.05 <- res[res$pvalue < 0.05 ,]
+result0.0001 <- res[res$pvalue < 0.0001 ,]
+
+
+#resOrdered <- result0.05[order(result0.05$stat, decreasing = TRUE),]
+#resOrdered
+
+
+#resultNA <- na.omit(result0.05)
+resultNA <- na.omit(result0.0001)
+
+resultNA <- as.data.frame(resultNA)
+
+
+#rownames(resOrdered)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+
+#resultNA[rownames(resultNA) %in% "MED1",]
+#resultNA[rownames(resultNA) %in% "GRAP1",]
+
+#ranks for gsea
+
+#OBTENEMOS ranks
+
+
+#ordered <- res.list[[5]][order(res.list[[5]]$P.Value),]
+
+
+
+ranks <- cbind(resultNA$stat,resultNA$log2FoldChange,rownames(resultNA),resultNA$pvalue)
+ranks<- as.data.frame(ranks)
+ranks$V1 <- as.numeric(ranks$V1)
+ranks$V2 <- as.numeric(ranks$V2)
+ranks$V4 <- as.numeric(ranks$V4)
+ranks <- ranks[order(ranks$V1,decreasing = T),]
+ranks <- na.omit(ranks)
+
+x <- strsplit(ranks$V3, ".", fixed=T)
+y<- c()
+for (i in 1:dim(ranks)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+ranks$V3  <-   y
+
+
+#rownames(ranks) <- ranks$V3
+
+#genes <- IDs[IDs$ensembl_transcript_id %in% y,] #replacement has 78651  rows, data has 78646
+#genes <- genes[!duplicated(genes$ensembl_transcript_id),]
+ranks$V5 <- genes$hgnc_symbol[match(ranks$V3,genes$ensembl_transcript_id)]  #Usar siempre el match!!!!
+
+
+#ranksDF <- setNames(ranks$V1, ranks$V4)
+
+ranksDF <-as.data.frame(cbind(ranks$V4, ranks$V1))  #t
+
+
+#ranksDF <-as.data.frame(cbind(ranks$V2, ranks$V1, ranks$V3, ranks$V4))   #ambos
+
+
+ranksDF <- ranksDF[!ranksDF$V1 %in% "",]
+
+#ranksDF$V2 <- as.numeric(ranksDF$V2) 
+#ranksDF <- ranksDF[order(ranksDF$V2,decreasing = T),]
+
+write.table(ranksDF, file="/Users/jparra/Documents/Gael/BTKSinergy/ranksUPNibruResistant.rnk", sep='\t', row.names=F, col.names=F)
+
+
+
+
+rownames(dds)
+
+x <- strsplit(rownames(dds), ".", fixed=T)
+
+y<- c()
+for (i in 1:107676) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+rownames(dds)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+
+
+
+plotCounts(dds, gene="CDYL", intgroup="CELL.LINE")
+
+
+plotCounts(dds, gene="CAMK1D", intgroup="CELL.LINE")
+
+plotCounts(dds, gene="UPF3A", intgroup="CELL.LINE")
+
+
+plotCounts(dds, gene="SUB1", intgroup="CELL.LINE")
+
+
+
+```
+
+
+
+
+```{r UNP1 vs UPNRES1 by treatment}
+
+samplesNames <- c("UPN1","UPN2","UPNRES1","UPNRES2")
+
+counts  <-   countsFinal[,match(samplesNames ,colnames(countsFinal))]
+
+metaSub  <-   meta[match(samplesNames ,meta$ID),]
+
+
+
+dds <- DESeqDataSetFromMatrix(countData = counts,
+                              colData = metaSub,
+                              design= ~ TREATMENT + CELL.LINE) 
+
+
+
+
+nrow(dds)
+## 194142
+keep <- rowSums(counts(dds)) > 1
+dds <- dds[keep,]
+nrow(dds)
+#107676
+
+
+# variance stabilizing transformation (VST)
+vsd <- vst(dds, blind = FALSE)
+
+
+
+topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 100)
+mat  <- assay(vsd)[ topVarGenes, ]
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+
+x <- strsplit(rownames(mat), ".", fixed=T)
+
+y<- c()
+for (i in 1:100) {
+  y[i] <- x[[i]][1]
+}
+
+
+rownames(mat)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+
+library(pheatmap)
+pheatmap(mat, annotation_col = anno)
+
+
+dds <- DESeq(dds)
+
+res <- results(dds, contrast=c("TREATMENT","CONTROL","ON12300")) 
+result0.05 <- res[res$pvalue < 0.05 ,]
+
+#resultNA <- na.omit(result0.0001)
+
+result0.05 <- as.data.frame(result0.05)
+
+
+#OBTENEMOS ranks
+
+
+
+
+x <- strsplit(rownames(result0.05), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(result0.05)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+result0.05$ID <-y
+
+#result0.05$padj
+
+ranks <- cbind(result0.05$stat,result0.05$ID,result0.05$log2FoldChange,result0.05$pvalue)
+
+ranks<- as.data.frame(ranks)
+ranks$V3 <- as.numeric(ranks$V3)
+ranks$V1 <- as.numeric(ranks$V1)
+ranks$V4 <- as.numeric(ranks$V4)
+
+ranks <- na.omit(ranks)
+
+ranks$V5 <- IDs$hgnc_symbol[match(ranks$V2,IDs$ensembl_transcript_id)]
+
+
+
+ranks$V1 <- as.numeric(ranks$V1) 
+ranks <- ranks[order(ranks$V1,decreasing = T),]
+
+
+
+
+
+ranks0.05 <- ranks[ranks$V4 < 0.05,]
+
+ranks0.05 <- ranks0.05[!ranks0.05$V5 %in% "",]
+
+ranks0.05 <-as.data.frame(cbind(ranks0.05$V5, ranks0.05$V1))
+
+write.table(ranks0.05, file="/Users/jparra/Documents/Gael/BTKSinergy/ranksCNvsONCO.rnk", sep='\t', row.names=F, col.names=F)
+
+
+#probar p ajustado
+
+#Representar FC expresion y proteinas y ver cuales coinciden.
+
+
+
+
+
+
+
+
+```
+
+
+
+#MINO1 vs  MINO2
+
+```{r MINO}
+
+samplesNames <- c("MINO1","MINO2")
+
+counts  <-   countsFinal[,match(samplesNames ,colnames(countsFinal))]
+
+metaSub  <-   meta[match(samplesNames ,meta$ID),]
+
+
+dds <- DESeqDataSetFromMatrix(countData = counts,
+                              colData = metaSub,
+                              #design= ~ CELL.LINE) 
+                              #design= ~ TREATMENT + CELL.LINE) 
+                              design= ~ TREATMENT) 
+
+
+
+
+nrow(dds)
+## 194142
+keep <- rowSums(counts(dds)) > 1
+dds <- dds[keep,]
+nrow(dds)
+#106449
+
+
+# variance stabilizing transformation (VST)
+#vsd <- vst(dds, blind = FALSE) Lo hacemos unsupervised porque solo hay una muestra por grupo y no puede calcular la dispersion.
+vsd <- vst(dds, blind = TRUE)
+
+
+
+#library("genefilter")
+topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 200)
+mat  <- assay(vsd)[ topVarGenes, ]
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+#library(pheatmap)
+
+x <- strsplit(rownames(mat), ".", fixed=T)
+
+y<- c()
+for (i in 1:200) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+rownames(mat)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+pheatmap(mat, annotation_col = anno)
+
+matDF <- as.data.frame(mat)
+matOverExpress <- rownames(matDF)[matDF$MINO1 > 0]
+matUnderExpress <- rownames(matDF)[matDF$MINO1 < 0]
+
+#write.table(matOverExpress, "/Users/jparra/Documents/Gael/BTKSinergy/matOverExpress.csv", sep = ",", row.names = TRUE)
+#write.table(matUnderExpress, "/Users/jparra/Documents/Gael/BTKSinergy/matUnderExpress.csv", sep = ",", row.names = TRUE)
+
+
+colData(dds)
+
+dds <- DESeq(dds)
+rownames(dds)
+
+x <- strsplit(rownames(dds), ".", fixed=T)
+
+y<- c()
+for (i in 1:107676) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+rownames(dds)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+
+
+
+rownames(dds)[rownames(dds) %in% "FADS2"]
+
+
+
+a <- dds[rownames(dds) %in% "FADS2",]
+
+
+plotCounts(dds, gene="ENST00000625230.1", intgroup="TREATMENT")
+plotCounts(dds, gene="FADS2", intgroup="CELL.LINE")
+#No hay diferencia ne los genes que gsea ve mas diferencias¿?
+
+
+plotCounts(dds, gene="IL2BB", intgroup="CELL.LINE") # Diferentes nombreS??
+
+plotCounts(dds, gene="BTD", intgroup="CELL.LINE") # Mas expresado en mino
+
+countsFinalDF <- as.data.frame(countsFinal)
+countsFinalDF$genes  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+
+countsFinalDF[countsFinalDF$genes %in% "FADS2",c("UPN1","MINO1","genes")]
+
+
+
+#64kg hay 6x10^23
+#(6*10^23)/64000
+
+#En un gramo hay 9x 10^18 hemoglobinas.
+
+#3600*24 = 86400
+
+#(9*10^18)/86400 = 1.041667e+14
+
+
+
+
+dds <- DESeq(dds) #No se puede hacer con una muestra por grupo
+res <- results(dds)
+res
+
+
+
+```
+
+
+
+
+
+
+
+MINO2 vs MINO3
+
+```{r MINO2}
+
+samplesNames <- c("MINO2","MINO3")
+
+counts  <-   countsFinal[,match(samplesNames ,colnames(countsFinal))]
+
+metaSub  <-   meta[match(samplesNames ,meta$ID),]
+
+
+dds <- DESeqDataSetFromMatrix(countData = counts,
+                              colData = metaSub,
+                              design= ~ TREATMENT) 
+
+
+
+
+nrow(dds)
+## 194142
+keep <- rowSums(counts(dds)) > 1
+dds <- dds[keep,]
+nrow(dds)
+#106449
+
+
+# variance stabilizing transformation (VST)
+#vsd <- vst(dds, blind = FALSE) Lo hacemos unsupervised porque solo hay una muestra por grupo y no puede calcular la dispersion.
+vsd <- vst(dds, blind = TRUE)
+
+
+
+#library("genefilter")
+topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 200) # Elige las lineas con mas variabilidad
+mat  <- assay(vsd)[ topVarGenes, ]
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+#library(pheatmap)
+
+x <- strsplit(rownames(mat), ".", fixed=T)
+
+y<- c()
+for (i in 1:200) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+rownames(mat)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+pheatmap(mat, annotation_col = anno)
+
+matDF <- as.data.frame(mat)
+matOverExpress <- rownames(matDF)[matDF$MINO2 > 0]
+matUnderExpress <- rownames(matDF)[matDF$MINO2 < 0]
+
+write.table(matOverExpress, "/Users/jparra/Documents/Gael/BTKSinergy/matOverExpress.csv", sep = ",", row.names = TRUE)
+write.table(matUnderExpress, "/Users/jparra/Documents/Gael/BTKSinergy/matUnderExpress.csv", sep = ",", row.names = TRUE)
+
+
+
+
+```
+
+
+
+
+
+
+#COMUNES
+
+```{r COMUNES}
+
+
+
+library(tidyverse) #read_tsv
+Mino1vsMino2 <- read_tsv("/Users/jparra/gsea_home/output/mar28/my_analysis.Gsea.Mino1vsMino2/ranked_gene_list_1_versus_2_1681293891601.tsv")
+
+Top200 <- Mino1vsMino2$NAME[1:200]
+
+matOverExpress[matOverExpress %in% Top200]
+
+# 136 GENES MAS EXPRESADOS EN MINO1 SOBRE MINO2 SEGUN dds Y vsd. matOverExpress
+# 200 GENES MAS EXPRESADOS EN MINO1 SOBRE MINO2 SEGUN GSEA. Top200
+
+#EN COMUN 4!!!!!
+
+
+
+
+matOverExpressMINO1vsMINO2 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/OverUnderExpresed/matOverExpressMINO1vsMINO2.csv")
+
+
+matOverExpressMINO1vsMINO3 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/OverUnderExpresed/matOverExpressMINO1vsMINO3.csv")
+
+
+comun <- matOverExpressMINO1vsMINO2[matOverExpressMINO1vsMINO2$x %in% matOverExpressMINO1vsMINO3$x,]
+#83 en comun
+
+
+
+
+matOverExpressMINO2vsMINO3 <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/OverUnderExpresed/matOverExpressMINO2vsMINO3.csv")
+
+
+matOverExpressMINO2vsMINO3[matOverExpressMINO2vsMINO3$x %in% comun,]
+#Solo 4 en comun. Inner join no es igual a 2-3
+
+
+Notcomun <- matOverExpressMINO1vsMINO2[!matOverExpressMINO1vsMINO2$x %in% matOverExpressMINO1vsMINO3$x,]
+
+Notcomun2 <- matOverExpressMINO1vsMINO3[!matOverExpressMINO1vsMINO3$x %in% matOverExpressMINO1vsMINO2$x,]
+
+NotcomunAll <- c(Notcomun,Notcomun2)
+
+
+NotcomunAll<- NotcomunAll[!duplicated(NotcomunAll)]
+
+
+
+
+matOverExpressMINO2vsMINO3[matOverExpressMINO2vsMINO3$x %in% NotcomunAll,]
+#21 en comun
+
+
+
+```
+
+
+
+#TXI
+
+```{r TXI}
+
+#install.packages("tximport")
+#BiocManager::install("tximport")
+library("tximport")
+
+#BiocManager::install("tximportData")
+
+library(tximportData)
+library(GenomicFeatures)
+
+
+#Referencia
+
+txdb <- makeTxDbFromGFF(file="/Users/jparra/Documents/Gael/BTKSinergy/gencode.v28.annotation.gff3.gz")
+txdb
+saveDb(x=txdb, file = "/Users/jparra/Documents/Gael/BTKSinergy/gencode.v28.annotation.TxDb")
+
+k <- keys(txdb, keytype = "TXNAME")
+tx2gene <- select(txdb, k, "GENEID", "TXNAME")
+columns(txdb)
+head(k)
+head(tx2gene)
+dim(tx2gene)
+length(k)
+write.table(tx2gene, "/Users/jparra/Documents/Gael/BTKSinergy/tx2gene.gencode.v28.csv", sep = "\t", row.names = FALSE)
+
+
+
+
+
+
+#Importamos usando la referencia para obtener los nombres de los genes
+
+txiUPN1 <- tximport("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPN1_quant/quant.sf", type="salmon", tx2gene=tx2gene)
+txiUPN1 <- as.data.frame(txiUPN1)
+txiUPN1 <- tximport("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPN1_quant/quant.sf", type="salmon", tx2gene=tx2gene,txOut=T)
+
+txiUPN2 <- tximport("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPN2_quant/quant.sf", type="salmon", tx2gene=tx2gene)
+
+txiJEKO1 <- tximport("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/JEKO1_quant/quant.sf", type="salmon", tx2gene=tx2gene)
+txiJEKO2 <- tximport("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/JEKO2_quant/quant.sf", type="salmon", tx2gene=tx2gene)
+
+txiMINO1 <- tximport("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/MINO1_quant/quant.sf", type="salmon", tx2gene=tx2gene)
+txiMINO2 <- tximport("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/MINO2_quant/quant.sf", type="salmon", tx2gene=tx2gene)
+
+txiREC1 <- tximport("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/REC1_quant/quant.sf", type="salmon", tx2gene=tx2gene)
+txiREC2 <- tximport("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/REC2_quant/quant.sf", type="salmon", tx2gene=tx2gene)
+
+txiUPNRES1 <- tximport("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPNRES1_quant/quant.sf", type="salmon", tx2gene=tx2gene)
+txiUPNRES2 <- tximport("/Users/jparra/Documents/Gael/BTKSinergy/salmon/quants/UPNRES2_quant/quant.sf", type="salmon", tx2gene=tx2gene)
+
+
+txiUPN1$counts
+countsFinaltxi<- c()
+
+countsFinaltxi<- cbind(as.integer(txiUPN1$counts),as.integer(txiUPN2$counts),as.integer(txiJEKO1$counts),as.integer(txiJEKO2$counts),as.integer(txiMINO1$counts),as.integer(txiMINO2$counts),as.integer(txiREC1$counts),as.integer(txiREC2$counts),as.integer(txiUPNRES1$counts),as.integer(txiUPNRES2$counts))
+
+rownames(countsFinaltxi) <- rownames(txiUPN1$counts)
+colnames(countsFinaltxi) <- c("UPN1","UPN2","JEKO1","JEKO2","MINO1","MINO2","REC1","REC2","UPNRES1","UPNRES2")
+
+
+
+#Anotamos
+
+listAttributes(mart)
+IDs <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol","ensembl_transcript_id"),
+                 filters = "ensembl_gene_id", values = rownames(txi$counts),mart = mart) # Obtengo duplicados
+
+#Eliminar .
+x <- strsplit(rownames(txi$counts), ".", fixed=T)
+
+y<- c()
+for (i in 1:31604) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+IDs <- getBM(attributes = c("ensembl_gene_id","hgnc_symbol","ensembl_transcript_id"),
+                 filters = "ensembl_gene_id", values = y,mart = mart) # Obtengo duplicados
+
+
+
+
+
+countsFinaltxi <- as.data.frame(countsFinaltxi)
+countsFinaltxi$genes <- IDs$hgnc_symbol[match(y,IDs$ensembl_gene_id)]
+
+
+saveRDS(countsFinaltxi, "/Users/jparra/Documents/Gael/BTKSinergy/countsFinaltxi.rds")
+
+
+
+
+rownames(countsFinaltxi) <- countsFinaltxi$genes   #Contiene duplicados
+
+#countsFinaltxi$genes[!duplicated(countsFinaltxi$genes)]
+
+genesUnicos <- countsFinaltxi$genes[!duplicated(countsFinaltxi$genes)]
+
+countsFinaltxiUnicos <- countsFinaltxi[match(genesUnicos, countsFinaltxi$genes), ]
+
+
+countsFinaltxiUnicos$genes[2044] <- "NA"
+countsFinaltxiUnicos$genes[3692] <- "NA2"
+countsFinaltxiUnicos$UPN1[3692]
+
+
+countsFinaltxiUnicos$genes[rownames(countsFinaltxiUnicos) %in% "ENSG00000112096.17"] <- "NA2"
+#countsFinaltxiUnicos$UPN1["ENSG00000112096.17"] 
+rownames(countsFinaltxiUnicos) <- countsFinaltxiUnicos$genes
+
+
+library("DESeq2")
+ddsCNvsONCO <- DESeqDataSetFromMatrix(countData = countsFinaltxiUnicos[,1:10],
+                              colData = metaCNvsONCO,
+                              design= ~ TREATMENT)
+
+
+
+ddsCNvsONCO <- DESeq(ddsCNvsONCO)
+res <- results(ddsCNvsONCO)
+#res
+
+resOrdered <- res[order(res$log2FoldChange),]
+resOrdered
+
+
+resDF <- as.data.frame(res)
+
+#resFiltered <- res[res$log2FoldChange > 20,]
+#resFiltered <- subset(res, subset = log2FoldChange > 200 & nFeature_RNA < 2500 & percent.mt < 5)
+resFiltered <- subset(resDF, subset = log2FoldChange > 20 | log2FoldChange < -20)  #El signo nos dice en que grupo esta mas expresado.
+
+resFiltered <- subset(resDF, subset = log2FoldChange > 4 | log2FoldChange < -4)
+
+resFiltered2 <- subset(resFiltered, subset = padj < 0.05 )
+
+
+resOrdered[rownames(resOrdered) %in% "CDK1",] #CDK1 no sale significativo!!!!
+
+
+
+countsFinalCNvsONCO[countsFinalCNvsONCO$GENES %in% "CDK1",]
+countsFinaltxi[countsFinaltxi$genes %in% "CDK1",]
+countsFinaltxiUnicos[countsFinaltxiUnicos$genes %in% "CDK1",]
+
+txiUPN1 <- as.data.frame(txiUPN1)
+txiUPN1$genes <- IDs$hgnc_symbol[match(y,IDs$ensembl_gene_id)]
+txiUPN1[txiUPN1$genes %in% "CDK1",]
+
+
+#Casi la media o maximo que dice txi
+
+
+countsFinalCNvsONCO <- readRDS("/Users/jparra/Documents/Gael/BTKSinergy/countsFinalCNvsONCO.rds")
+countsFinalCNvsONCO<- as.data.frame(countsFinalCNvsONCO)
+countsFinalCNvsONCO$GENES  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+
+library(data.table) #as.data.table
+
+      #expresionGen <- expresionGen[,lapply(.SD, mean), by = Sample.Name]
+
+countsFinalCNvsONCO<- as.data.table(countsFinalCNvsONCO)
+#setDT(countsFinalCNvsONCO)
+#Nos quedamos con el maximo!
+      maxGenes <- countsFinalCNvsONCO[,lapply(.SD, max), by = GENES]
+
+      
+      maxGenes <- as.data.frame(maxGenes)
+      
+      rownames(maxGenes)<- maxGenes$GENES
+      maxGenes <- maxGenes[,2:11]
+      
+      
+      library("DESeq2")
+ddsCNvsONCO <- DESeqDataSetFromMatrix(countData = maxGenes,
+                              colData = metaCNvsONCO,
+                              design= ~ TREATMENT)
+
+
+
+ddsCNvsONCO <- DESeq(ddsCNvsONCO)
+res <- results(ddsCNvsONCO)
+#res
+
+resOrdered <- res[order(res$log2FoldChange),]
+resOrdered <- res[order(res),]
+
+resOrdered
+
+
+resDF <- as.data.frame(res)
+
+      
+```
+
+
+
+#Synergy
+
+```{r Synergy}
+
+
+#Sinergy pipeline https://nadschro.github.io/synergy-analysis/Synergy-analysis_Markdown.html
+experiment.title="Jero"
+
+
+install.packages("pacman")
+library(pacman)
+pacman::p_load(limma, edgeR, pheatmap, RColorBrewer, ggplot2, ggpubr, 
+               qvalue,  plyr, wesanderson, GSEABase, grid, scales, WebGestaltR, stringr)
+
+
+
+mds <- function(normDGE, metacol, title){
+  mcol <- as.factor(metacol)
+  col <- rainbow(length(levels(mcol)), 1, 0.8, alpha = 0.5)[mcol]
+  plotMDS(normDGE, col = col, pch = 16, cex = 2)
+  legend("center", 
+         fill = rainbow(length(levels(mcol)), 1, 0.8), 
+         legend = levels(mcol), 
+         horiz = F, 
+         bty = "o", 
+         box.col="grey", 
+         xpd=TRUE)
+  title(main=title)
+}
+
+
+
+
+power.compare.logFC <- function( sig1, sig2, N, N_other = c(2,4,6,8,10), alpha = 0.05, n_tests = 20000){
+  d <- seq(0, 3, length.out=1000)
+  alpha_multiple <- alpha / n_tests
+  df <- lapply( N_other/N, function(n_scale){
+    sigSq <- (sig1^2 + sig2^2) / n_scale
+    cutoff <- qnorm( alpha_multiple/2, 0, sd = sqrt(sigSq), lower.tail = FALSE)
+    p1 <- pnorm(-1*cutoff, d, sqrt(sigSq))
+    p2 <- 1-pnorm(cutoff, d, sqrt(sigSq))
+    data.frame(n_scale, d, power=p1+p2)
+  })
+  df <- do.call("rbind", df)
+  ggplot(df, aes(d, power, color = as.factor(n_scale*N))) + 
+    geom_line() + 
+    theme_bw(14) + 
+    theme(aspect.ratio = 1, plot.title = element_text(hjust = 0.5)) + 
+    ylim(0, 1) + 
+    scale_color_discrete("Samples") + 
+    xlab(bquote(abs(logFC[observed] - logFC[expected]))) + 
+    ggtitle("Power versus difference in logFC")
+}
+
+
+```
+
+
+
+## Synergy   SOLO UPN1 y UPNRES ABEMACICLIB_IBRUTINIB
+
+
+
+
+```{r AbeIbruUPN}
+
+countsFinal <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/countsFinalAll.csv", sep = ",")
+meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+
+samplesNames <- c("UPN1","UPN2","UPN3","UPN4","UPN5","UPN6","UPNRES1","UPNRES2","UPNRES3","UPNRES4","UPNRES5","UPNRES6")
+#samplesNames <- c("UPN1","UPN2","UPN3","UPN4","UPN5","UPN6") #No se puede hacer eBayes sin duplicados!!!
+counts  <-   countsFinal[,match(samplesNames ,colnames(countsFinal))]
+
+metaSub  <-   meta[match(samplesNames ,meta$ID),]
+
+row.names(metaSub) <- metaSub$ID
+metaSub <- metaSub[match(colnames(counts), row.names(metaSub)), ]
+
+#6
+library(edgeR)
+plot(cpm(counts)[, 1], counts[, 1], ylim = c(0, 50), xlim = c(0, 3))
+abline(h = 10, col = "red")
+abline(v = 0.25, col = "red")
+
+
+keep <- rowSums(cpm(counts[]) > 0.25) >= 4
+gExpr <- counts[keep, ]
+dim(gExpr)
+
+
+
+#7
+y <- DGEList(gExpr)
+y <- calcNormFactors(y)
+
+x <- strsplit(rownames(y), ".", fixed=T)
+
+nombreGenes<- c()
+for (i in 1:dim(gExpr)[[1]]) {
+  #print(i)
+  nombreGenes[i] <- x[[i]][1]
+}
+
+anno <- IDs[match(rownames(y), IDs$ensembl_transcript_id), ]
+#y$genes <- anno #se rompe
+
+
+
+#8
+#install.packages("chroGPS")
+#BiocManager::install("chroGPS")
+
+#library(chroGPS)
+#install.packages("mds")
+#library(mds)
+
+#for (i in 1:length(colnames(metaSub))){
+#  mds(y, metaSub[ ,i], colnames(metaSub)[i])   #mds funcion propia
+#}
+
+#library(stats)
+#plotMDS(y)
+
+
+
+#9
+#Por tratamiento no hay diferencias, es la variable que queremos comparar.
+#Si coloremaos por cell.line vemos que las mino y las jeko se separan del resto. Tendremos que incluir en el modelo como covariable.
+
+design <- model.matrix(~ 0 + TREATMENT  + CELL.LINE, metaSub) 
+
+colnames(design)
+colnames(design) <- gsub("\\+", "_", colnames(design))
+colnames(design) <- gsub("-", "", colnames(design))
+colnames(design) <- gsub("TREATMENT", "", colnames(design))
+colnames(design)
+
+
+
+#10
+#The voom() function prepares the data for linear modeling by converting counts to logCPM and computing weights for heteroscedasticity adjustment. It also creates a diagnostic plot for the mean-variance trend (Fig. 5C). Visually inspect it for fit. Increase the cutoff for lowly expressed genes to improve fit if necessary.
+v <- voom(y, design, plot = TRUE, save.plot = TRUE)
+
+
+
+#11 fit model
+
+fit <- lmFit(v, design)
+
+
+
+#12
+
+colnames(design) <- gsub("\\+", "_", colnames(design))
+
+
+#colnames(design)
+
+cont.matrix <- makeContrasts(
+  Ibru = IBRUTINIB - CONTROL,
+  Abema = ABEMACICLIB - CONTROL,
+  Additive = IBRUTINIB + ABEMACICLIB  - 2*CONTROL,
+  Combinatorial = ABEMACICLIB_IBRUTINIB - CONTROL,
+  Synergy = ABEMACICLIB_IBRUTINIB - IBRUTINIB - ABEMACICLIB  + 1*CONTROL,
+  levels = design)
+
+
+
+
+
+
+#13
+
+cont.p <- t(cont.matrix)
+
+#install.packages("GiNA")
+#install.packages("EBImage")
+#library(GiNA)
+library(pheatmap)
+
+h <- pheatmap(cont.p,
+              display_numbers = T, number_format = "%.0f",
+              breaks = seq(-3, 1, by = 0.5),
+              #color = colorRampPalette(rev(brewer.pal(n = 10, name = "RdYlBu")))(12), 
+              cluster_cols = F, cluster_rows = F)
+
+
+
+#14
+
+#rownames(cont.matrix)
+#colnames(fit)
+fit.cont <- contrasts.fit(fit, cont.matrix)
+
+
+#15
+
+fit.cont <- eBayes(fit.cont)
+plotSA(fit.cont, main = "Final model: Mean-variance trend", ylab = "Sqrt( standard deviation )")
+
+summa.fit = decideTests(fit.cont, adjust.method = "fdr")
+
+
+#mapeo
+x <- strsplit(rownames(fit.cont$coefficients), ".", fixed=T)
+nombreGenes<- c()
+for (i in 1:dim(fit.cont$coefficients)[[1]]) {
+  nombreGenes[i] <- x[[i]][1]
+}
+anno <- IDs[match(nombreGenes, IDs$ensembl_transcript_id), ]
+
+par(mfrow = c(1, 2))
+for (i in 1:length(colnames(fit.cont$contrasts))){
+  plotMD(fit.cont, coef = i, status = summa.fit[, i], values = c(-1, 1))
+  volcanoplot(fit.cont, coef = i, highlight = 100, 
+              names = fit.cont$genes)
+}
+
+
+#fit.cont$genes <- IDs$hgnc_symbol[match(nombreGenes, IDs$ensembl_transcript_id) ]
+
+#contrast <- as.data.frame(fit.cont$p.value)
+#signi<- rownames(contrast)[contrast$Synergy < 0.01]
+
+
+
+#16
+res.list <- list()
+for (i in 1:length(colnames(fit.cont$contrasts))){
+  x <- topTable(fit.cont, coef = i, sort.by = "p", n = Inf, confint = T)
+  res.list[[i]] <- x
+  names(res.list)[i] <- colnames(fit.cont$contrasts)[i]
+ # write.csv(x, paste0("results/", experiment.title, "_DEGs_", 
+                      #colnames(fit.cont$contrasts)[i], ".csv"))
+}
+
+
+
+```
+
+```{r AbeIbruUPNranks}
+
+
+#signi<- rownames(x)[x$adj.P.Val < 0.5]  #Ninguna significativa si miramos el p.valor ajustado.
+
+#signi<- x[x$P.Value < 0.05,]
+
+#signiFC <- signi[signi$logFC > 5,]
+
+#x <- strsplit(rownames(signiFC), ".", fixed=T)
+
+#nombreGenes<- c()
+#for (i in 1:dim(signiFC)[[1]]) {
+  #print(i)
+#  nombreGenes[i] <- x[[i]][1]
+#}
+
+#anno <- IDs[match(nombreGenes, IDs$ensembl_transcript_id), ]
+
+#coef<- as.data.frame(fit.cont$coefficients)
+
+
+#library(dplyr)
+#vol_plot <- res.list[[5]] %>%
+#  ggplot(aes(x = logFC,
+#             y = -log10(P.Value))) + 
+#  geom_point() 
+
+  
+#  vol_plot + 
+#  geom_hline(yintercept = -log10(0.05),
+#             linetype = "dashed") + 
+#  geom_vline(xintercept = c(log2(0.5), log2(2)),
+#             linetype = "dashed")
+  
+  
+#  res.list[[5]] <- res.list[[5]] %>%
+#  mutate(gene_type = case_when(logFC >= 5 & P.Value <= 0.05 ~ "up",
+#                               logFC <= -5 & P.Value <= 0.05 ~ "down",
+                               #TRUE ~ "ns")) 
+  
+#  res.list[[5]] %>%
+#  count(gene_type)
+  
+#  cols <- c("up" = "#ffad73", "down" = "#26b3ff", "ns" = "grey") 
+#sizes <- c("up" = 1, "down" = 1, "ns" = 0.5) 
+#alphas <- c("up" = 1, "down" = 1, "ns" = 0.5)
+ 
+
+#library(ggrepel)
+
+#ordered <- res.list[[5]][order(res.list[[5]]$P.Value),]
+
+#Tenemos genes duplicados, para obtener los que tienen mas diferencia odenamos por el valor absoluto de fold change y eliminams duplicados.
+#uniqueRes <- ordered[!duplicated(ordered$ID),]
+
+
+
+#  uniqueRes <- uniqueRes %>%
+#  mutate(gene_type = case_when(logFC >= 8 & P.Value <= 0.05 ~ "up",
+ #                              logFC <= -8 & P.Value <= 0.05 ~ "down",
+#                               TRUE ~ "ns")) 
+  
+#  uniqueRes %>%
+#  count(gene_type)
+  
+
+#  uniqueRes %>%
+#  ggplot(aes(x = logFC,
+#             y = -log10(P.Value),
+#             fill = gene_type,    
+#             size = gene_type,
+#             alpha = gene_type
+            # ,label=ID
+#             )) + 
+#  geom_point(shape = 21, # Specify shape and colour as fixed local parameters    
+#             colour = "black") + 
+#    geom_hline(yintercept = -log10(0.05),
+#             linetype = "dashed") + 
+#  geom_vline(xintercept = c(-5, 5),
+#             linetype = "dashed") +
+#  geom_label_repel(data = sig_up_il_genes, # Add labels last to appear as the top layer  
+#                   aes(label = ID,colour = gene_type),
+#                   force = 2,
+#                   nudge_y = 1) +
+#    scale_fill_manual(values = cols) + # Modify point colour
+#  scale_size_manual(values = sizes) + # Modify point size
+##  scale_alpha_manual(values = alphas) + # Modify point transparency
+#  scale_x_continuous(breaks = c(seq(-10, 10, 5)),       
+#                     limits = c(-20, 20)) 
+
+
+#library(fgsea)
+
+  
+  
+
+
+#ranks <- cbind(ordered$t, ordered$ID,ordered$logFC)
+#ranks<- as.data.frame(ranks)
+#ranks$V3 <- as.numeric(ranks$V3)
+#ranks$V4 <- abs(ranks$V3)
+#ranks <- ranks[order(ranks$V4,decreasing = T),]
+
+#ranks$V5 <- uniqueIDs$hgnc_id[uniqueIDs$hgnc_symbol   %in% ranks$V2]
+#ranks$V1 <- as.numeric(ranks$V1)
+#ranks <- setNames(ranks$V1, ranks$V5)
+
+#rownames(ranks) <- uniqueIDs$hgnc_id[uniqueIDs$hgnc_symbol %in% ranks$V2]
+
+#uniqueIDs <- IDs[!duplicated(IDs$hgnc_id),]
+
+
+#pathways <- gmtPathways("/Users/jparra/Documents/Gael/BTKSinergy/msigdb.v2023.1.Hs.entrez.gmt")
+
+#fgseaRes <- fgsea(pathways = pathways, 
+#                  stats    = ranks,
+#                  minSize  = 2,
+#                  maxSize  = 1500)
+
+
+#library(ggplot2)
+#plotEnrichment(pathways[["IRF1_Q6"]],ranks)  + labs(title="IRF1_Q6")
+
+#plotEnrichment(pathways[["REACTOME_NERVOUS_SYSTEM_DEVELOPMENT"]],ranks)  + labs(title="	
+#REACTOME_NERVOUS_SYSTEM_DEVELOPMENT") #Porque es tan poco significativo?  
+
+#fgseaRes <- fgseaRes[order(fgseaRes$pval),]
+
+#write.table(fgseaRes[,1:7], file="/Users/jparra/Documents/Gael/BTKSinergy/fgseaResUPN.csv", sep=",", row.names=F, col.names=TRUE)
+
+
+
+
+
+
+
+
+
+
+#OBTENEMOS ranks
+
+
+
+
+
+ordered <- res.list[[5]] 
+
+#ranks <- cbind(ordered$t, ordered$ID,ordered$logFC,ordered$P.Value)
+ranks <- cbind(ordered$t, rownames(ordered),ordered$logFC,ordered$P.Value)
+ranks<- as.data.frame(ranks)
+
+x <- strsplit(ranks$V2, ".", fixed=T)
+y<- c()
+for (i in 1:dim(ranks)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+ranks$V2  <-   y
+
+
+ranks$V3 <- as.numeric(ranks$V3)
+ranks$V1 <- as.numeric(ranks$V1)
+ranks$V4 <- as.numeric(ranks$V4)
+ranks <- na.omit(ranks)
+
+ranks$V5 <- IDs$hgnc_symbol[match(ranks$V2,IDs$ensembl_transcript_id)]
+
+ranks <- ranks[order(ranks$V1,decreasing = T),]
+
+
+
+
+
+#filtrando por p value de sinergia.
+
+
+
+ranks0.05 <- ranks[ranks$V4 < 0.05,]
+
+ranks0.05 <- ranks0.05[!ranks0.05$V5 %in% "",]
+
+ranks0.05 <-as.data.frame(cbind(ranks0.05$V5, ranks0.05$V1))   #t
+
+write.table(ranks0.05, file="/Users/jparra/Documents/Gael/BTKSinergy/ranks05UPNabemaIbru.rnk", sep='\t', row.names=F, col.names=F)
+
+
+
+
+```
+
+
+
+
+
+## Synergy  UPN1 y UPNRES ON12300_IBRUTINIB
+
+
+```{r OncoIbruUPN}
+
+
+#Ejecutar antes biomart
+
+samplesNames <- c("UPN1","UPN2","UPN3","UPN4","UPN5","UPN6","UPNRES1","UPNRES2","UPNRES3","UPNRES4","UPNRES5","UPNRES6")
+#samplesNames <- c("UPN1","UPN2","UPN3","UPN4","UPN5","UPN6") #No se puede hacer eBayes sin duplicados!!!
+counts  <-   countsFinal[,match(samplesNames ,colnames(countsFinal))]
+meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+metaSub  <-   meta[match(samplesNames ,meta$ID),]
+row.names(metaSub) <- metaSub$ID
+metaSub <- metaSub[match(colnames(counts), row.names(metaSub)), ]
+
+#6
+library(edgeR)
+plot(cpm(counts)[, 1], counts[, 1], ylim = c(0, 50), xlim = c(0, 3))
+#abline(h = 10, col = "red")
+#abline(v = 0.25, col = "red")
+
+
+keep <- rowSums(cpm(counts[]) > 0.25) >= 4
+gExpr <- counts[keep, ]
+dim(gExpr)
+
+
+
+#7
+y <- DGEList(gExpr)
+y <- calcNormFactors(y)
+
+x <- strsplit(rownames(y), ".", fixed=T)
+
+nombreGenes<- c()
+for (i in 1:dim(gExpr)[[1]]) {
+  #print(i)
+  nombreGenes[i] <- x[[i]][1]
+}
+
+
+#ejecutar biomart!!!!!!!!!!!!!!!!!!
+anno <- IDs[match(rownames(y), IDs$ensembl_transcript_id), ]
+#y$genes <- anno #se rompe
+
+
+
+#8
+#install.packages("chroGPS")
+#BiocManager::install("chroGPS")
+
+#library(chroGPS)
+#install.packages("mds")
+library(mds)
+
+#for (i in 1:length(colnames(metaSub))){
+#  mds(y, metaSub[ ,i], colnames(metaSub)[i])   #mds funcion propia
+#}
+
+library(stats)
+#plotMDS(y)
+
+
+
+#9
+#Por tratamiento no hay diferencias, es la variable que queremos comparar.
+#Si coloremaos por cell.line vemos que las mino y las jeko se separan del resto. Tendremos que incluir en el modelo como covariable.
+
+design <- model.matrix(~ 0 + TREATMENT  + CELL.LINE, metaSub) #B
+#design <- model.matrix(~ TREATMENT , metaSub) 
+
+colnames(design)
+colnames(design) <- gsub("\\+", "_", colnames(design))
+colnames(design) <- gsub("-", "", colnames(design))
+colnames(design) <- gsub("TREATMENT", "", colnames(design))
+colnames(design)
+
+
+
+#10
+#The voom() function prepares the data for linear modeling by converting counts to logCPM and computing weights for heteroscedasticity adjustment. It also creates a diagnostic plot for the mean-variance trend (Fig. 5C). Visually inspect it for fit. Increase the cutoff for lowly expressed genes to improve fit if necessary.
+v <- voom(y, design, plot = TRUE, save.plot = TRUE)
+
+
+
+#11 fit model
+
+fit <- lmFit(v, design)
+
+
+
+#12
+
+colnames(design)
+
+#formula1
+cont.matrix <- makeContrasts(
+  Ibru = IBRUTINIB - CONTROL,
+  Onco = ON12300 - CONTROL,
+  Additive = IBRUTINIB + ON12300 - 2*CONTROL,
+  Combinatorial = ON12300_IBRUTINIB - CONTROL,
+  Synergy = ON12300_IBRUTINIB - IBRUTINIB - ON12300  + 1*CONTROL,
+  levels = design)
+
+
+
+#formula 2
+#cont.matrix <- makeContrasts(
+#Ibru = IBRUTINIB - CONTROL,
+#  Onco = ON12300 - CONTROL,
+ # Additive = IBRUTINIB + ON12300 - 2*CONTROL,
+ # Combinatorial = ON12300_IBRUTINIB - 2*CONTROL,
+ # Synergy = ON12300_IBRUTINIB - IBRUTINIB - ON12300 ,
+ # levels = design)
+
+
+#13
+
+cont.p <- t(cont.matrix)
+
+#install.packages("GiNA")
+#install.packages("EBImage")
+#library(GiNA)
+library(pheatmap)
+
+h <- pheatmap(cont.p,
+              display_numbers = T, number_format = "%.0f",
+              breaks = seq(-3, 1, by = 0.5),
+              #color = colorRampPalette(rev(brewer.pal(n = 10, name = "RdYlBu")))(12), 
+              cluster_cols = F, cluster_rows = F)
+
+
+
+#14
+
+fit.cont <- contrasts.fit(fit, cont.matrix)
+
+
+#15
+
+fit.cont <- eBayes(fit.cont)
+plotSA(fit.cont, main = "Final model: Mean-variance trend", ylab = "Sqrt( standard deviation )")
+
+summa.fit = decideTests(fit.cont, adjust.method = "fdr")
+
+
+#mapeo
+x <- strsplit(rownames(fit.cont$coefficients), ".", fixed=T)
+nombreGenes<- c()
+for (i in 1:dim(fit.cont$coefficients)[[1]]) {
+  nombreGenes[i] <- x[[i]][1]
+}
+
+anno <- IDs[match(nombreGenes, IDs$ensembl_transcript_id), ]
+
+par(mfrow = c(1, 2))
+for (i in 1:length(colnames(fit.cont$contrasts))){
+  plotMD(fit.cont, coef = i, status = summa.fit[, i], values = c(-1, 1))
+  volcanoplot(fit.cont, coef = i, highlight = 100, 
+              names = fit.cont$genes)
+}
+
+
+
+#16
+res.list <- list()
+for (i in 1:length(colnames(fit.cont$contrasts))){
+  x <- topTable(fit.cont, coef = i, sort.by = "p", n = Inf, confint = T)
+  res.list[[i]] <- x
+  names(res.list)[i] <- colnames(fit.cont$contrasts)[i]
+ # write.csv(x, paste0("results/", experiment.title, "_DEGs_", 
+                      #colnames(fit.cont$contrasts)[i], ".csv"))
+}
+
+
+
+
+
+
+#OBTENEMOS ranks
+
+ordered <- res.list[[5]] 
+
+#Tenemos genes duplicados, para obtener los que tienen mas diferencia odenamos por el valor absoluto de fold change y eliminams duplicados.
+#Al eliminar duplicdos elimine todos NA!!
+#uniqueRes <- ordered[!duplicated(ordered$ID),]
+
+
+ordered
+
+x <- strsplit(rownames(ordered), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(ordered)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+ordered$ID <-y
+
+
+
+ranks <- cbind(ordered$t, ordered$ID,ordered$logFC,ordered$P.Value)
+
+ranks<- as.data.frame(ranks)
+ranks$V3 <- as.numeric(ranks$V3)
+ranks$V1 <- as.numeric(ranks$V1)
+ranks <- na.omit(ranks)
+
+ranks$V5 <- IDs$hgnc_symbol[match(ranks$V2,IDs$ensembl_transcript_id)]
+
+
+#ranksDF <-as.data.frame(cbind(ranks$V2, ranks$V3))  #FC
+
+
+ranks$V1 <- as.numeric(ranks$V1) 
+ranks <- ranks[order(ranks$V1,decreasing = T),]
+
+
+#write.table(ranksDF, file="/Users/jparra/Documents/Gael/BTKSinergy/ranksUPNibruVSonco61956FC.rnk", sep='\t', row.names=F, col.names=F)
+
+
+
+
+
+#filtrando por p value de sinergia.
+
+
+
+ranks0.05 <- ranks[ranks$V4 < 0.05,]
+
+ranks0.05 <- ranks0.05[!ranks0.05$V5 %in% "",]
+
+ranks0.05 <-as.data.frame(cbind(ranks0.05$V5, ranks0.05$V1))   #t
+
+#write.table(ranks0.05, file="/Users/jparra/Documents/Gael/BTKSinergy/ranks05UPNoncoIbru.rnk", sep='\t', row.names=F, col.names=F)
+
+
+#ranks0.05 <- na.omit(ranks0.05)
+
+
+
+
+#rutas comunes y no comunes
+
+abemaibruGSEA <- read.delim("/Users/jparra/Documents/Gael/BTKSinergy/abemaibruGSEA.txt")
+abemaibruGSEA <- abemaibruGSEA[abemaibruGSEA$FDR.q.val < 0.05,]
+
+#abemaibruGSEA$NAME
+
+
+
+oncoibruGSEA <- read.delim("/Users/jparra/Documents/Gael/BTKSinergy/oncoibruGSEA.txt")
+oncoibruGSEA <- oncoibruGSEA[oncoibruGSEA$FDR.q.val < 0.05,]
+
+#Comunes
+abemaibruGSEA$NAME[abemaibruGSEA$NAME %in% oncoibruGSEA$NAME]
+
+#No comunes
+abemaibruGSEA$NAME[!abemaibruGSEA$NAME %in% oncoibruGSEA$NAME]
+oncoibruGSEA$NAME[!oncoibruGSEA$NAME %in% abemaibruGSEA$NAME]
+
+
+
+
+#genes comunes y no comunes
+
+genesOnco <- ranks0.05$V1
+
+genesAbema <- ranks0.05$V1
+
+#Comunes
+comunes <- genesOnco[genesOnco %in% genesAbema]
+
+#No comunes
+NoComunesOnco <- genesOnco[!genesOnco %in% genesAbema]
+NoComunesAbema <- genesAbema[!genesAbema %in% genesOnco]
+
+
+
+
+
+
+
+#heatmaps aditivo vs combinacion
+
+res.list$Additive$ID <- rownames(res.list$Additive)
+res.list$Combinatorial$ID <- rownames(res.list$Combinatorial)
+res.list$Synergy$ID <- rownames(res.list$Synergy)
+
+colnames(res.list$Additive)
+log2FC.matrix <- Reduce(function(x,y) merge(x,y,by="ID", all = F),  #Se podria internat or rownames
+                        list(res.list$Additive[,c(9,1,5,6)],
+                             res.list$Combinatorial[,c(9,1,5,6)],
+                             res.list$Synergy[,c(9,1,5,6)]))
+
+#Merge por transcrito no genename
+
+
+
+
+colnames(log2FC.matrix)
+## [1] "ensembl"   "Gene_name" "logFC.x"   "P.Value.x" "logFC.y"   "P.Value.y"
+## [7] "logFC"     "P.Value"
+
+#Add a column assigning synergistic categories to each gene using the categorize.synergy() function, which takes the previously created matrix and the expression cutoff into account.
+
+colnames(log2FC.matrix) <- c("ID","Additive.logFC", "Additive.t" ,"Additive.pvalue", 
+                             "Combinatorial.logFC", "Combinatorial.t", "Combinatorial.pvalue", 
+                             "Synergistic.logFC", "Synergistic.t", "Synergistic.pvalue")
+
+
+categorize.synergy <- function(logFCmatrix, meanSE){
+  m <- logFCmatrix
+  m$magnitude.syn <- NA
+  for (i in 1:length(m$ID)){
+    if (m$Synergistic.logFC[i] > meanSE){
+      if (m$Additive.logFC[i] < -meanSE){
+        if (m$Combinatorial.logFC[i] > meanSE){
+          m$magnitude.syn[i] = "more.up"
+        } else m$magnitude.syn[i] = "less.down"
+      } else m$magnitude.syn[i] = "more.up"
+    }
+    else if (m$Synergistic.logFC[i] < -meanSE){
+      if (m$Additive.logFC[i] > meanSE){
+        if (m$Combinatorial.logFC[i] < -meanSE){
+          m$magnitude.syn[i] = "more.down"
+        } else m$magnitude.syn[i] = "less.up"
+      } else m$magnitude.syn[i] = "more.down"
+    } else m$magnitude.syn[i] = "same"
+  }
+  m$magnitude.syn <- as.factor(m$magnitude.syn)
+  return(m)
+}
+
+
+
+
+SE <- sqrt(fit.cont$s2.post) * fit.cont$stdev.unscaled
+meanSE = mean(SE[,c(1,2,3,4,5)])
+
+log2FC.matrix <- categorize.synergy(log2FC.matrix, meanSE)
+
+rownames(log2FC.matrix) <- log2FC.matrix$ID
+
+
+#library(EBImage)
+library(GiNA)
+for (i in 1:length(levels(log2FC.matrix$magnitude.syn))){
+  breaks <- c(seq(-6, -0.3,by=0.1),seq(0.3, 6,by=0.1))
+  breaks <- append(breaks, -9,0)
+  breaks <- append(breaks, 9)
+  tmp <- log2FC.matrix[log2FC.matrix$magnitude.syn == 
+                         levels(log2FC.matrix$magnitude.syn)[i],
+                       c("Additive.logFC","Combinatorial.logFC")]
+  h <- pheatmap(tmp,
+                #kmeans_k = 30, 
+                #annotation_row = rownames(tmp),
+                #cellwidth = 70, cellheight = 5,
+                border_color = NA, 
+                breaks=breaks,
+                cluster_cols = F,
+                #show_rownames = F,
+                color = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(117),
+                main = paste0("logFC expected vs. measured:\n",
+                              levels(log2FC.matrix$magnitude.syn)[i]))
+  print(h)
+}
+
+
+
+
+
+
+#piechart
+
+
+library(ggplot2)
+library(wesanderson)
+zissou <- wes_palette("Zissou1", 6, type = "continuous")
+
+
+
+genes.per.category<- as.data.frame(table(log2FC.matrix$magnitude.syn))
+
+
+print(genes.per.category)
+
+
+q <- ggplot(genes.per.category, aes(x = "", y = Freq, fill = Var1)) +
+  geom_col() +
+  coord_polar("y", start=0) + 
+  scale_fill_manual(values=zissou) +
+  theme_void()
+print(q)
+
+
+
+
+
+#################¿Nos quedamos solo con als que tengan el p.value significativo de sinergia? ¿signi en todo?
+
+
+
+
+
+
+log2FC.matrixSigni <- log2FC.matrix[log2FC.matrix$Synergistic.pvalue < 0.05,]
+
+log2FC.matrixSigni <- log2FC.matrixSigni[log2FC.matrixSigni$Additive.pvalue < 0.05,]
+log2FC.matrixSigni <- log2FC.matrixSigni[log2FC.matrixSigni$Combinatorial.pvalue < 0.05,]
+
+
+
+x <- strsplit(log2FC.matrixSigni$ID, ".", fixed=T)
+y<- c()
+for (i in 1:299) {
+  y[i] <- x[[i]][1]
+}
+
+log2FC.matrixSigni$ID <- IDs$hgnc_symbol[match(y,IDs$ensembl_transcript_id)]
+
+log2FC.matrixSigni <- log2FC.matrixSigni[!duplicated(log2FC.matrixSigni$ID),]
+log2FC.matrixSigni <- log2FC.matrixSigni[!log2FC.matrixSigni$ID %in% "",]
+rownames(log2FC.matrixSigni) <- log2FC.matrixSigni$ID
+
+
+library(GiNA)
+for (i in 1:length(levels(log2FC.matrixSigni$magnitude.syn))){
+  breaks <- c(seq(-6, -0.3,by=0.1),seq(0.3, 6,by=0.1))
+  breaks <- append(breaks, -9,0)
+  breaks <- append(breaks, 9)
+  tmp <- log2FC.matrixSigni[log2FC.matrixSigni$magnitude.syn == 
+                         levels(log2FC.matrixSigni$magnitude.syn)[i],
+                       c("Additive.logFC","Combinatorial.logFC")]
+  h <- pheatmap(tmp,
+                #kmeans_k = 30, 
+                #annotation_row = rownames(tmp),
+                #cellwidth = 70, cellheight = 5,
+                border_color = NA, 
+                breaks=breaks,
+                cluster_cols = F,
+                show_rownames = T,
+                color = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(117),
+                main = paste0("logFC expected vs. measured:\n",
+                              levels(log2FC.matrixSigni$magnitude.syn)[i]))
+  print(h)
+}
+
+
+
+
+genes.per.category<- as.data.frame(table(log2FC.matrixSigni$magnitude.syn))
+print(genes.per.category)
+
+
+q <- ggplot(genes.per.category, aes(x = "", y = Freq, fill = Var1)) +
+  geom_col() +
+  coord_polar("y", start=0) + 
+  scale_fill_manual(values=zissou) +
+  theme_void()
+#pdf(paste0("results/", experiment.title, "-8_synergy-categories_pie-chart.pdf"))
+print(q)
+
+
+
+
+
+#Obtengo los genes more.up para anotarlos con KEGG
+
+
+moreUpGenes <- log2FC.matrixSigni[log2FC.matrixSigni$magnitude.syn %in% "more.up","ID"]
+
+
+log2FC.matrixSigni
+
+#a
+
+
+
+
+```
+
+
+
+
+```{r OncoIbruUPNJEKOMINO}
+
+
+
+
+samplesNames <- c("UPN1","UPN2","UPN3","UPN4","UPN5","UPN6","UPNRES1","UPNRES2","UPNRES3","UPNRES4","UPNRES5","UPNRES6",
+                  "REC1","REC2","REC3","REC4","REC5","REC6","JEKO1","JEKO2","JEKO3","JEKO4","JEKO5","JEKO6")
+counts  <-   countsFinal[,match(samplesNames ,colnames(countsFinal))]
+meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+metaSub  <-   meta[match(samplesNames ,meta$ID),]
+row.names(metaSub) <- metaSub$ID
+metaSub <- metaSub[match(colnames(counts), row.names(metaSub)), ]
+
+#6
+library(edgeR)
+
+
+keep <- rowSums(cpm(counts[]) > 0.25) >= 4
+gExpr <- counts[keep, ]
+dim(gExpr)
+
+
+
+#7
+y <- DGEList(gExpr)
+y <- calcNormFactors(y)
+
+x <- strsplit(rownames(y), ".", fixed=T)
+
+nombreGenes<- c()
+for (i in 1:dim(gExpr)[[1]]) {
+  #print(i)
+  nombreGenes[i] <- x[[i]][1]
+}
+
+
+anno <- IDs[match(rownames(y), IDs$ensembl_transcript_id), ]
+
+
+library(stats)
+
+
+design <- model.matrix(~ 0 + TREATMENT  + CELL.LINE, metaSub) #B
+
+colnames(design) <- gsub("\\+", "_", colnames(design))
+
+colnames(design)
+colnames(design) <- gsub("\\+", "_", colnames(design))
+colnames(design) <- gsub("-", "", colnames(design))
+colnames(design) <- gsub("TREATMENT", "", colnames(design))
+colnames(design)
+
+
+
+#10
+
+v <- voom(y, design, plot = TRUE, save.plot = TRUE)
+
+
+
+#11 fit model
+
+fit <- lmFit(v, design)
+
+
+
+#12
+
+colnames(design)
+
+#formula1
+cont.matrix <- makeContrasts(
+  Ibru = IBRUTINIB - CONTROL,
+  Onco = ON12300 - CONTROL,
+  Additive = IBRUTINIB + ON12300 - 2*CONTROL,
+  Combinatorial = ON12300_IBRUTINIB - CONTROL,
+  Synergy = ON12300_IBRUTINIB - IBRUTINIB - ON12300  + 1*CONTROL,
+  levels = design)
+
+
+#13
+
+cont.p <- t(cont.matrix)
+
+library(pheatmap)
+
+h <- pheatmap(cont.p,
+              display_numbers = T, number_format = "%.0f",
+              breaks = seq(-3, 1, by = 0.5),
+              #color = colorRampPalette(rev(brewer.pal(n = 10, name = "RdYlBu")))(12), 
+              cluster_cols = F, cluster_rows = F)
+
+
+
+#14
+
+fit.cont <- contrasts.fit(fit, cont.matrix)
+
+
+#15
+
+fit.cont <- eBayes(fit.cont)
+plotSA(fit.cont, main = "Final model: Mean-variance trend", ylab = "Sqrt( standard deviation )")
+
+summa.fit = decideTests(fit.cont, adjust.method = "fdr")
+
+
+#mapeo
+x <- strsplit(rownames(fit.cont$coefficients), ".", fixed=T)
+nombreGenes<- c()
+for (i in 1:dim(fit.cont$coefficients)[[1]]) {
+  nombreGenes[i] <- x[[i]][1]
+}
+anno <- IDs[match(nombreGenes, IDs$ensembl_transcript_id), ]
+
+par(mfrow = c(1, 2))
+for (i in 1:length(colnames(fit.cont$contrasts))){
+  plotMD(fit.cont, coef = i, status = summa.fit[, i], values = c(-1, 1))
+  volcanoplot(fit.cont, coef = i, highlight = 100, 
+              names = fit.cont$genes)
+}
+
+
+#16
+res.list <- list()
+for (i in 1:length(colnames(fit.cont$contrasts))){
+  x <- topTable(fit.cont, coef = i, sort.by = "p", n = Inf, confint = T)
+  res.list[[i]] <- x
+  names(res.list)[i] <- colnames(fit.cont$contrasts)[i]
+}
+
+
+
+
+
+
+#OBTENEMOS ranks
+
+ordered <- res.list[[5]] 
+
+
+
+
+ranks <- cbind(ordered$t, rownames(ordered),ordered$logFC,ordered$P.Value)
+
+ranks<- as.data.frame(ranks)
+ranks$V3 <- as.numeric(ranks$V3)
+ranks$V1 <- as.numeric(ranks$V1)
+ranks <- na.omit(ranks)
+
+
+x <- strsplit(ranks$V2, ".", fixed=T)
+y<- c()
+for (i in 1:dim(ranks)[[1]]) {
+  y[i] <- x[[i]][1]
+}
+ranks$V2  <-   y
+
+ranks$V5 <- IDs$hgnc_symbol[match(ranks$V2,IDs$ensembl_transcript_id)]
+
+
+ranks$V1 <- as.numeric(ranks$V1) 
+ranks <- ranks[order(ranks$V1,decreasing = T),]
+
+
+
+
+ranks0.05 <- ranks[ranks$V4 < 0.05,]
+
+ranks0.05 <- ranks0.05[!ranks0.05$V5 %in% "",]
+
+ranks0.05 <-as.data.frame(cbind(ranks0.05$V5, ranks0.05$V1))   #t
+
+write.table(ranks0.05, file="/Users/jparra/Documents/Gael/BTKSinergy/ranks05ALLoncoIbru.rnk", sep='\t', row.names=F, col.names=F)
+
+
+
+
+
+```
+
+
+
+
+
+
+
+```{r OncoIbruUPN2}
+
+
+
+signi<- rownames(x)[x$adj.P.Val < 0.5]  #Ninguna significativa si miramos el p.valor ajustado.
+
+signi<- x[x$P.Value < 0.05,]
+
+signiFC <- signi[signi$logFC > 5,]
+
+x <- strsplit(rownames(signiFC), ".", fixed=T)
+
+nombreGenes<- c()
+for (i in 1:dim(signiFC)[[1]]) {
+  #print(i)
+  nombreGenes[i] <- x[[i]][1]
+}
+
+anno <- IDs[match(nombreGenes, IDs$ensembl_transcript_id), ]
+
+coef<- as.data.frame(fit.cont$coefficients)
+
+
+library(dplyr)
+#vol_plot <- res.list[[5]] %>%
+ # ggplot(aes(x = logFC,y = -log10(P.Value))) + 
+ # geom_point() 
+
+  
+ # vol_plot + 
+ # geom_hline(yintercept = -log10(0.05),
+ #            linetype = "dashed") + 
+ # geom_vline(xintercept = c(log2(0.5), log2(2)),
+ #            linetype = "dashed")
+  
+  
+ # res.list[[5]] <- res.list[[5]] %>%
+ # mutate(gene_type = case_when(logFC >= 5 & P.Value <= 0.05 ~ "up",
+ #                              logFC <= -5 & P.Value <= 0.05 ~ "down",
+ #                              TRUE ~ "ns")) 
+  
+ # res.list[[5]] %>%
+ # count(gene_type)
+  
+ # cols <- c("up" = "#ffad73", "down" = "#26b3ff", "ns" = "grey") 
+#sizes <- c("up" = 1, "down" = 1, "ns" = 0.5) 
+#alphas <- c("up" = 1, "down" = 1, "ns" = 0.5)
+ 
+
+
+ordered <- res.list[[5]][order(res.list[[5]]$P.Value),]
+
+#Tenemos genes duplicados, para obtener los que tienen mas diferencia odenamos por el valor absoluto de fold change y eliminams duplicados.
+#uniqueRes <- ordered[!duplicated(ordered$ID),]
+uniqueRes <- ordered
+
+
+
+ # uniqueRes <- uniqueRes %>%
+ # mutate(gene_type = case_when(logFC >= 8 & P.Value <= 0.05 ~ "up",
+ #                              logFC <= -8 & P.Value <= 0.05 ~ "down",
+ #                              TRUE ~ "ns")) 
+  
+ # uniqueRes %>%
+ # count(gene_type)
+  
+library(ggrepel)
+
+ # uniqueRes %>%
+ # ggplot(aes(x = logFC,
+ #            y = -log10(P.Value),
+ #            fill = gene_type,    
+ #            size = gene_type,
+ #            alpha = gene_type
+            # ,label=ID
+ #            )) + 
+ # geom_point(shape = 21, # Specify shape and colour as fixed local parameters    
+ #            colour = "black") + 
+ #   geom_hline(yintercept = -log10(0.05),
+ #            linetype = "dashed") + 
+ # geom_vline(xintercept = c(-5, 5),
+ #            linetype = "dashed") +
+  #geom_label_repel(data = sig_up_il_genes, # Add labels last to appear as the top layer  
+  #                 aes(label = ID,colour = gene_type),
+  #                 force = 2,
+  #                 nudge_y = 1) +
+ #   scale_fill_manual(values = cols) + # Modify point colour
+ # scale_size_manual(values = sizes) + # Modify point size
+ # scale_alpha_manual(values = alphas) + # Modify point transparency
+ # scale_x_continuous(breaks = c(seq(-10, 10, 5)),       
+ #                    limits = c(-20, 20)) 
+
+
+library(fgsea)
+
+
+
+
+
+
+
+
+#deberia eliminar los NO significativos
+
+#uniqueResSigni <- uniqueRes[uniqueRes$P.Value<0.05,]
+  
+#uniqueResSigni<- uniqueResSigni[uniqueResSigni$logFC >5 | uniqueResSigni$logFC < -5,]
+
+#library(fgsea)
+
+#ranks <- cbind(uniqueResSigni$t, uniqueResSigni$ID,uniqueResSigni$logFC,rownames(uniqueResSigni))
+ranks <- cbind(uniqueRes$t, uniqueRes$ID,uniqueRes$logFC,rownames(uniqueRes))
+ranks<- as.data.frame(ranks)
+ranks$V3 <- as.numeric(ranks$V3)
+ranks <- ranks[order(ranks$V3,decreasing = T),]
+ranks <- na.omit(ranks)
+
+x <- strsplit(ranks$V4, ".", fixed=T)
+y<- c()
+for (i in 1:dim(ranks)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+ranks$V4  <-   y
+
+
+genes <- IDs[IDs$ensembl_transcript_id %in% ranks$V4,] #replacement has 78651  rows, data has 78646
+
+genes <- genes[!duplicated(genes$ensembl_transcript_id),]
+
+ranks$V5 <- genes$hgnc_id[match(ranks$V4,genes$ensembl_transcript_id)]  #Usar siempre el match!!!!
+#ranks <- setNames(ranks$V3, ranks$V5)
+
+#ranksDF <-as.data.frame(cbind(ranks$V2, ranks$V3))  #FC
+#ranksDF <-as.data.frame(cbind(ranks$V2, ranks$V1))   #t
+
+ranksDF <-as.data.frame(cbind(ranks$V2, ranks$V1, ranks$V3, ranks$V4))   #ambos
+
+
+ranksDF <- ranksDF[!ranksDF$V1 %in% "",]
+
+ranksDF$V2 <- as.numeric(ranksDF$V2) 
+ranksDF <- ranksDF[order(ranksDF$V2,decreasing = T),]
+
+write.table(ranksDF, file="/Users/jparra/Documents/Gael/BTKSinergy/ranksUPNibruVSonco61956.rnk", sep='\t', row.names=F, col.names=F)
+
+#write.table(ranksDF, file="/Users/jparra/Documents/Gael/BTKSinergy/ranksUPNibruVSoncoAmbos.rnk", sep='\t', row.names=F, col.names=F)
+
+write.table(ranksDF, file="/Users/jparra/Documents/Gael/BTKSinergy/ranksUPNibruVSonco2.rnk", sep='\t', row.names=F, col.names=F)
+
+
+
+pathways <- gmtPathways("/Users/jparra/Documents/Gael/BTKSinergy/msigdb.v2023.1.Hs.entrez.gmt")
+
+fgseaRes <- fgsea(pathways = pathways, 
+                  stats    = ranks,
+                  minSize  = 2,
+                  maxSize  = 1500)
+
+
+library(ggplot2)
+plotEnrichment(pathways[["IRF1_Q6"]],ranks)  + labs(title="IRF1_Q6")
+
+plotEnrichment(pathways[["REACTOME_NERVOUS_SYSTEM_DEVELOPMENT"]],ranks)  + labs(title="	
+REACTOME_NERVOUS_SYSTEM_DEVELOPMENT") #Porque es tan poco significativo?  
+
+fgseaRes <- fgseaRes[order(fgseaRes$pval),]
+
+write.table(fgseaRes[,1:7], file="/Users/jparra/Documents/Gael/BTKSinergy/fgseaResUPNibruVSonco.csv", sep=",", row.names=F, col.names=TRUE)
+
+
+
+
+
+#Synergy score:
+library(qvalue)
+synergy.pvalues <- res.list$Synergy$P.Value
+pi1 <- 1 - qvalue(synergy.pvalues)$pi0
+print(pi1)
+
+plot.new()
+text(0.4,0.75,labels=paste0("\n",round(pi1 * 100, 2), 
+                            "% non-null \np-values and \n", 
+                            round(sum(res.list$Synergy$P.Value < 0.1) *
+                                    100/length(res.list$Synergy$ID), 2), 
+                            " % of genes with \nsynergy FDR < 0.1"))
+
+
+FDR <- p.adjust(res.list$Synergy$P.Value, method="BH")
+
+hist(synergy.pvalues)
+
+
+
+#synergy power
+SE <- sqrt(fit.cont$s2.post) * fit.cont$stdev.unscaled
+
+sig1 <- median(SE[,"Additive"])
+sig2 <- median(SE[,"Combinatorial"])
+g <- power.compare.logFC(sig1, sig2, N = 4, N_other = c(4, 6, 8, 10, 14,20,27), 
+                         alpha = 0.05, n_tests = 20000)
+print(g)
+
+
+
+```
+
+
+
+## Synergy load data.  TODAS   ABEMACICLIB_IBRUTINIB
+
+
+
+```{r AbeIbruAll}
+
+#countsFinal <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/countsFinalAll.csv", sep = ",")
+#meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+counts  <-   countsFinal
+metaSub  <-   meta
+
+row.names(metaSub) <- metaSub$ID
+metaSub <- metaSub[match(colnames(counts), row.names(metaSub)), ]
+
+#6
+library(edgeR)
+plot(cpm(counts)[, 1], counts[, 1], ylim = c(0, 50), xlim = c(0, 3))
+abline(h = 10, col = "red")
+abline(v = 0.25, col = "red")
+
+
+keep <- rowSums(cpm(counts[]) > 0.25) >= 4
+gExpr <- counts[keep, ]
+dim(gExpr)
+
+
+
+#7
+y <- DGEList(gExpr)
+y <- calcNormFactors(y)
+#anno <- read.csv("anno.csv")
+#row.names(anno) <- anno$ensembl
+
+x <- strsplit(rownames(y), ".", fixed=T)
+
+nombreGenes<- c()
+for (i in 1:dim(gExpr)[[1]]) {
+  #print(i)
+  nombreGenes[i] <- x[[i]][1]
+}
+
+anno <- IDs[match(rownames(y), IDs$ensembl_transcript_id), ]
+#y$genes <- anno #se rompe
+
+
+
+#8
+#install.packages("chroGPS")
+#BiocManager::install("chroGPS")
+
+#library(chroGPS)
+#install.packages("mds")
+#library(mds)
+
+for (i in 1:length(colnames(metaSub))){
+  mds(y, metaSub[ ,i], colnames(metaSub)[i])   #mds funcion propia
+}
+
+library(stats)
+plotMDS(y)
+
+
+
+#9
+#Por tratamiento no hay diferencias, es la variable que queremos comparar.
+#Si coloremaos por cell.line vemos que las mino y las jeko se separan del resto. Tendremos que incluir en el modelo como covariable.
+
+design <- model.matrix(~ 0 + TREATMENT + CELL.LINE, metaSub) 
+
+colnames(design)
+colnames(design) <- gsub("\\+", "_", colnames(design))
+colnames(design) <- gsub("-", "", colnames(design))
+colnames(design) <- gsub("TREATMENT", "", colnames(design))
+colnames(design)
+
+
+
+#10
+#The voom() function prepares the data for linear modeling by converting counts to logCPM and computing weights for heteroscedasticity adjustment. It also creates a diagnostic plot for the mean-variance trend (Fig. 5C). Visually inspect it for fit. Increase the cutoff for lowly expressed genes to improve fit if necessary.
+v <- voom(y, design, plot = TRUE, save.plot = TRUE)
+
+
+
+#11 fit model
+
+fit <- lmFit(v, design)
+
+
+
+#12
+
+colnames(design)
+
+cont.matrix <- makeContrasts(
+  Ibru = IBRUTINIB - CONTROL,
+  Abema = ABEMACICLIB - CONTROL,
+  Additive = IBRUTINIB + ABEMACICLIB  - 2*CONTROL,
+  Combinatorial = ABEMACICLIB_IBRUTINIB - CONTROL,
+  Synergy = ABEMACICLIB_IBRUTINIB - IBRUTINIB - ABEMACICLIB  + 1*CONTROL,
+  levels = design)
+
+
+
+
+
+
+#13
+
+cont.p <- t(cont.matrix)
+
+#install.packages("GiNA")
+#install.packages("EBImage")
+#library(GiNA)
+library(pheatmap)
+
+h <- pheatmap(cont.p,
+              display_numbers = T, number_format = "%.0f",
+              breaks = seq(-3, 1, by = 0.5),
+              #color = colorRampPalette(rev(brewer.pal(n = 10, name = "RdYlBu")))(12), 
+              cluster_cols = F, cluster_rows = F)
+#print(h)
+
+
+
+#14
+
+fit.cont <- contrasts.fit(fit, cont.matrix)
+
+
+#15
+
+fit.cont <- eBayes(fit.cont)
+plotSA(fit.cont, main = "Final model: Mean-variance trend", ylab = "Sqrt( standard deviation )")
+
+summa.fit = decideTests(fit.cont, adjust.method = "fdr")
+
+
+#mapeo
+x <- strsplit(rownames(fit.cont$coefficients), ".", fixed=T)
+nombreGenes<- c()
+for (i in 1:dim(fit.cont$coefficients)[[1]]) {
+  #print(i)
+  nombreGenes[i] <- x[[i]][1]
+}
+anno <- IDs[match(nombreGenes, IDs$ensembl_transcript_id), ]
+#y$hgnc_symbol <- anno se rompe
+
+
+
+par(mfrow = c(1, 2))
+for (i in 1:length(colnames(fit.cont$contrasts))){
+  plotMD(fit.cont, coef = i, status = summa.fit[, i], values = c(-1, 1))
+  volcanoplot(fit.cont, coef = i, highlight = 100, 
+              names = fit.cont$genes)
+              #names = anno$hgnc_symbol)
+              #names = rownames(fit.cont$coefficients))
+
+}
+
+
+#rownames(fit.cont$coefficients) <- IDs$hgnc_symbol[match(nombreGenes, IDs$ensembl_transcript_id) ]
+fit.cont$genes <- IDs$hgnc_symbol[match(nombreGenes, IDs$ensembl_transcript_id) ]
+
+contrast <- as.data.frame(fit.cont$p.value)
+
+signi<- rownames(contrast)[contrast$Synergy < 0.01]
+
+
+
+#16
+res.list <- list()
+for (i in 1:length(colnames(fit.cont$contrasts))){
+  x <- topTable(fit.cont, coef = i, sort.by = "p", n = Inf, confint = T)
+  res.list[[i]] <- x
+  names(res.list)[i] <- colnames(fit.cont$contrasts)[i]
+ # write.csv(x, paste0("results/", experiment.title, "_DEGs_", 
+                      #colnames(fit.cont$contrasts)[i], ".csv"))
+}
+
+
+
+signi<- rownames(x)[x$adj.P.Val < 0.5]  #Ninguna significativa si miramos el p.valor ajustado.
+
+signi<- x[x$P.Value < 0.05,]
+
+signiFC <- signi[signi$logFC > 5,]
+
+x <- strsplit(rownames(signiFC), ".", fixed=T)
+
+nombreGenes<- c()
+for (i in 1:dim(signiFC)[[1]]) {
+  #print(i)
+  nombreGenes[i] <- x[[i]][1]
+}
+
+anno <- IDs[match(nombreGenes, IDs$ensembl_transcript_id), ]
+
+#write.table(anno$hgnc_symbol, "/Users/jparra/Documents/Gael/BTKSinergy/genes.csv", sep = ",", row.names = FALSE)
+
+
+coef<- as.data.frame(fit.cont$coefficients)
+
+
+library(dplyr)
+vol_plot <- res.list[[5]] %>%
+  ggplot(aes(x = logFC,
+             y = -log10(P.Value))) + 
+  geom_point() 
+
+  
+  vol_plot + 
+  geom_hline(yintercept = -log10(0.05),
+             linetype = "dashed") + 
+  geom_vline(xintercept = c(log2(0.5), log2(2)),
+             linetype = "dashed")
+  
+  
+  res.list[[5]] <- res.list[[5]] %>%
+  mutate(gene_type = case_when(logFC >= 5 & P.Value <= 0.05 ~ "up",
+                               logFC <= -5 & P.Value <= 0.05 ~ "down",
+                               TRUE ~ "ns")) 
+  
+  res.list[[5]] %>%
+  count(gene_type)
+  
+  cols <- c("up" = "#ffad73", "down" = "#26b3ff", "ns" = "grey") 
+sizes <- c("up" = 1, "down" = 1, "ns" = 0.5) 
+alphas <- c("up" = 1, "down" = 1, "ns" = 0.5)
+
+
+library(ggrepel)
+
+
+ordered <- res.list[[5]][order(res.list[[5]]$P.Value),]
+
+#Tenemos genes duplicados, para obtener los que tienen mas diferencia odenamos por el valor absoluto de fold change y eliminams duplicados.
+uniqueRes <- ordered[!duplicated(ordered$ID),]
+
+
+
+  uniqueRes <- uniqueRes %>%
+  mutate(gene_type = case_when(logFC >= 8 & P.Value <= 0.05 ~ "up",
+                               logFC <= -8 & P.Value <= 0.05 ~ "down",
+                               TRUE ~ "ns")) 
+  
+  uniqueRes %>%
+  count(gene_type)
+  
+
+  uniqueRes %>%
+  ggplot(aes(x = logFC,
+             y = -log10(P.Value),
+             fill = gene_type,    
+             size = gene_type,
+             alpha = gene_type
+            # ,label=ID
+             )) + 
+  geom_point(shape = 21, # Specify shape and colour as fixed local parameters    
+             colour = "black") + 
+    geom_hline(yintercept = -log10(0.05),
+             linetype = "dashed") + 
+  geom_vline(xintercept = c(-5, 5),
+             linetype = "dashed") +
+  geom_label_repel(data = sig_up_il_genes, # Add labels last to appear as the top layer  
+                   aes(label = ID,colour = gene_type),
+                   force = 2,
+                   nudge_y = 1) +
+    scale_fill_manual(values = cols) + # Modify point colour
+  scale_size_manual(values = sizes) + # Modify point size
+  scale_alpha_manual(values = alphas) + # Modify point transparency
+  scale_x_continuous(breaks = c(seq(-10, 10, 5)),       
+                     limits = c(-20, 20)) 
+
+
+
+library(fgsea)
+
+
+ranks <- cbind(uniqueRes$t, uniqueRes$ID,uniqueRes$logFC)
+ranks<- as.data.frame(ranks)
+ranks$V3 <- as.numeric(ranks$V3)
+ranks$V4 <- abs(ranks$V3)
+ranks <- ranks[order(ranks$V4,decreasing = T),]
+
+#IDs$hgnc_id <- gsub("HGNC:", "", IDs$hgnc_id)
+
+ranks$V5 <- uniqueIDs$hgnc_id[uniqueIDs$hgnc_symbol   %in% ranks$V2]
+ranks$V1 <- as.numeric(ranks$V1)
+ranks <- setNames(ranks$V1, ranks$V5)
+
+#rownames(ranks) <- uniqueIDs$hgnc_id[uniqueIDs$hgnc_symbol %in% ranks$V2]
+
+uniqueIDs <- IDs[!duplicated(IDs$hgnc_id),]
+
+
+pathways <- gmtPathways("/Users/jparra/Documents/Gael/BTKSinergy/msigdb.v2023.1.Hs.entrez.gmt")
+
+fgseaRes <- fgsea(pathways = pathways, 
+                  stats    = ranks,
+                  minSize  = 2,
+                  maxSize  = 9500)
+
+
+library(ggplot2)
+plotEnrichment(pathways[["IRF1_Q6"]],ranks)  + labs(title="IRF1_Q6")
+
+plotEnrichment(pathways[["PUJANA_BRCA1_PCC_NETWORK"]],ranks)  + labs(title="PUJANA_BRCA1_PCC_NETWORK") #Porque es tan poco significativo?
+
+fgseaRes <- fgseaRes[order(fgseaRes$pval),]
+
+write.table(fgseaRes[,1:7], file="/Users/jparra/Documents/Gael/BTKSinergy/fgseaResALL.csv", sep=",", row.names=F, col.names=TRUE)
+
+
+
+
+
+#Synergy score:
+library(qvalue)
+synergy.pvalues <- res.list$Synergy$P.Value
+pi1 <- 1 - qvalue(synergy.pvalues)$pi0
+print(pi1)
+
+plot.new()
+text(0.4,0.75,labels=paste0("\n",round(pi1 * 100, 2), 
+                            "% non-null \np-values and \n", 
+                            round(sum(res.list$Synergy$adj.P.Val < 0.1) *
+                                    100/length(res.list$Synergy$ID), 2), 
+                            " % of genes with \nsynergy FDR < 0.1"))
+
+
+FDR <- p.adjust(res.list$Synergy$adj.P.Val, method="BH")
+
+hist(synergy.pvalues)
+
+
+
+#synergy power
+SE <- sqrt(fit.cont$s2.post) * fit.cont$stdev.unscaled
+
+sig1 <- median(SE[,"Additive"])
+sig2 <- median(SE[,"Combinatorial"])
+g <- power.compare.logFC(sig1, sig2, N = 4, N_other = c(4, 6, 8, 10, 14,20,27), 
+                         alpha = 0.05, n_tests = 20000)
+print(g)
+
+```
+
+
+## Synergy load data. TODAS ON12300_IBRUTINIB 
+
+
+
+```{r OncoIbruALL}
+
+countsFinal <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/countsFinalAll.csv", sep = ",")
+meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+counts  <-   countsFinal
+metaSub  <-   meta
+
+row.names(metaSub) <- metaSub$ID
+metaSub <- metaSub[match(colnames(counts), row.names(metaSub)), ]
+
+#6
+library(edgeR)
+plot(cpm(counts)[, 1], counts[, 1], ylim = c(0, 50), xlim = c(0, 3))
+abline(h = 10, col = "red")
+abline(v = 0.25, col = "red")
+
+
+keep <- rowSums(cpm(counts[]) > 0.25) >= 4
+gExpr <- counts[keep, ]
+dim(gExpr)
+
+
+
+#7
+y <- DGEList(gExpr)
+y <- calcNormFactors(y)
+#anno <- read.csv("anno.csv")
+#row.names(anno) <- anno$ensembl
+
+x <- strsplit(rownames(y), ".", fixed=T)
+
+nombreGenes<- c()
+for (i in 1:dim(gExpr)[[1]]) {
+  #print(i)
+  nombreGenes[i] <- x[[i]][1]
+}
+
+anno <- IDs[match(rownames(nombreGenes), IDs$ensembl_transcript_id), ]
+#y$genes <- anno #se rompe
+
+
+
+#8
+#install.packages("chroGPS")
+#BiocManager::install("chroGPS")
+
+#library(chroGPS)
+#install.packages("mds")
+library(mds)
+
+for (i in 1:length(colnames(metaSub))){
+  mds(y, metaSub[ ,i], colnames(metaSub)[i])   #mds funcion propia
+}
+
+library(stats)
+plotMDS(y)
+
+
+
+#9
+#Por tratamiento no hay diferencias, es la variable que queremos comparar.
+#Si coloremaos por cell.line vemos que las mino y las jeko se separan del resto. Tendremos que incluir en el modelo como covariable.
+
+design <- model.matrix(~ 0 + TREATMENT  + CELL.LINE, metaSub) 
+
+colnames(design)
+colnames(design) <- gsub("\\+", "_", colnames(design))
+colnames(design) <- gsub("-", "", colnames(design))
+colnames(design) <- gsub("TREATMENT", "", colnames(design))
+colnames(design)
+
+
+
+#10
+#The voom() function prepares the data for linear modeling by converting counts to logCPM and computing weights for heteroscedasticity adjustment. It also creates a diagnostic plot for the mean-variance trend (Fig. 5C). Visually inspect it for fit. Increase the cutoff for lowly expressed genes to improve fit if necessary.
+v <- voom(y, design, plot = TRUE, save.plot = TRUE)
+
+
+
+#11 fit model
+
+fit <- lmFit(v, design)
+
+
+
+#12
+
+colnames(design)
+
+cont.matrix <- makeContrasts(
+  Ibru = IBRUTINIB - CONTROL,
+  Onco = ON12300 - CONTROL,
+  Additive = IBRUTINIB + ON12300  - 2*CONTROL,
+  Combinatorial = ON12300_IBRUTINIB - CONTROL,
+  Synergy = ON12300_IBRUTINIB - IBRUTINIB - ON12300  + CONTROL,
+  levels = design)
+
+
+
+
+
+#13
+
+cont.p <- t(cont.matrix)
+
+#install.packages("GiNA")
+#install.packages("EBImage")
+#library(GiNA)
+library(pheatmap)
+
+h <- pheatmap(cont.p,
+              display_numbers = T, number_format = "%.0f",
+              breaks = seq(-3, 1, by = 0.5),
+              #color = colorRampPalette(rev(brewer.pal(n = 10, name = "RdYlBu")))(12), 
+              cluster_cols = F, cluster_rows = F)
+#print(h)
+
+
+
+#14
+
+fit.cont <- contrasts.fit(fit, cont.matrix)
+
+
+#15
+
+fit.cont <- eBayes(fit.cont)
+plotSA(fit.cont, main = "Final model: Mean-variance trend", ylab = "Sqrt( standard deviation )")
+
+summa.fit = decideTests(fit.cont, adjust.method = "fdr")
+
+
+#mapeo
+x <- strsplit(rownames(fit.cont$coefficients), ".", fixed=T)
+nombreGenes<- c()
+for (i in 1:dim(fit.cont$coefficients)[[1]]) {
+  #print(i)
+  nombreGenes[i] <- x[[i]][1]
+}
+anno <- IDs[match(nombreGenes, IDs$ensembl_transcript_id), ]
+#y$hgnc_symbol <- anno se rompe
+
+
+
+par(mfrow = c(1, 2))
+for (i in 1:length(colnames(fit.cont$contrasts))){
+  plotMD(fit.cont, coef = i, status = summa.fit[, i], values = c(-1, 1))
+  volcanoplot(fit.cont, coef = i, highlight = 100, 
+              names = fit.cont$genes)
+}
+
+
+#rownames(fit.cont$coefficients) <- IDs$hgnc_symbol[match(nombreGenes, IDs$ensembl_transcript_id) ]
+fit.cont$genes <- IDs$hgnc_symbol[match(nombreGenes, IDs$ensembl_transcript_id) ]
+
+contrast <- as.data.frame(fit.cont$p.value)
+
+signi<- rownames(contrast)[contrast$Synergy < 0.01]
+
+
+
+#16
+res.list <- list()
+for (i in 1:length(colnames(fit.cont$contrasts))){
+  x <- topTable(fit.cont, coef = i, sort.by = "p", n = Inf, confint = T)
+  res.list[[i]] <- x
+  names(res.list)[i] <- colnames(fit.cont$contrasts)[i]
+ # write.csv(x, paste0("results/", experiment.title, "_DEGs_", 
+                      #colnames(fit.cont$contrasts)[i], ".csv"))
+}
+
+
+
+#signi<- rownames(x)[x$adj.P.Val < 0.5]  #Ninguna significativa si miramos el p.valor ajustado.
+
+signi<- x[x$P.Value < 0.05,]
+
+signiFC <- signi[signi$logFC > 5,]
+
+x <- strsplit(rownames(signiFC), ".", fixed=T)
+
+nombreGenes<- c()
+for (i in 1:dim(signiFC)[[1]]) {
+  #print(i)
+  nombreGenes[i] <- x[[i]][1]
+}
+
+anno <- IDs[match(nombreGenes, IDs$ensembl_transcript_id), ]
+
+library(dplyr)
+vol_plot <- res.list[[5]] %>%
+  ggplot(aes(x = logFC,
+             y = -log10(P.Value))) + 
+  geom_point() 
+
+  
+  vol_plot + 
+  geom_hline(yintercept = -log10(0.05),
+             linetype = "dashed") + 
+  geom_vline(xintercept = c(log2(0.5), log2(2)),
+             linetype = "dashed")
+  
+  
+  res.list[[5]] <- res.list[[5]] %>%
+  mutate(gene_type = case_when(logFC >= 5 & P.Value <= 0.05 ~ "up",
+                               logFC <= -5 & P.Value <= 0.05 ~ "down",
+                               TRUE ~ "ns")) 
+  
+  res.list[[5]] %>%
+  count(gene_type)
+  
+  cols <- c("up" = "#ffad73", "down" = "#26b3ff", "ns" = "grey") 
+sizes <- c("up" = 1, "down" = 1, "ns" = 0.5) 
+alphas <- c("up" = 1, "down" = 1, "ns" = 0.5)
+
+
+library(ggrepel)
+
+
+
+
+#sigo aqui
+ordered <- res.list[[5]][order(res.list[[5]]$P.Value),]
+
+#Tenemos genes duplicados, para obtener los que tienen mas diferencia odenamos por el valor absoluto de fold change y eliminams duplicados.
+#Al eliminar duplicdos elimine todos NA!!
+#uniqueRes <- ordered[!duplicated(ordered$ID),]
+
+
+ordered
+
+x <- strsplit(rownames(ordered), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(ordered)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+ordered$ID  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+
+uniqueRes<- ordered
+
+#IDs[IDs$ensembl_transcript_id %in% "ENST00000565296",]
+
+#library(dplyr)
+
+  uniqueRes <- uniqueRes %>%
+  mutate(gene_type = case_when(logFC >= 8 & P.Value <= 0.05 ~ "up",
+                               logFC <= -8 & P.Value <= 0.05 ~ "down",
+                               TRUE ~ "ns")) 
+  
+  uniqueRes %>%
+  count(gene_type)
+  
+
+  uniqueRes %>%
+  ggplot(aes(x = logFC,
+             y = -log10(P.Value),
+             fill = gene_type,    
+             size = gene_type,
+             alpha = gene_type
+            # ,label=ID
+             )) + 
+  geom_point(shape = 21, # Specify shape and colour as fixed local parameters    
+             colour = "black") + 
+    geom_hline(yintercept = -log10(0.05),
+             linetype = "dashed") + 
+  geom_vline(xintercept = c(-5, 5),
+             linetype = "dashed") +
+  #geom_label_repel(data = sig_up_il_genes, # Add labels last to appear as the top layer  
+  #                 aes(label = ID,colour = gene_type),
+  #                 force = 2,
+  #                 nudge_y = 1) +
+    scale_fill_manual(values = cols) + # Modify point colour
+  scale_size_manual(values = sizes) + # Modify point size
+  scale_alpha_manual(values = alphas) + # Modify point transparency
+  scale_x_continuous(breaks = c(seq(-10, 10, 5)),       
+                     limits = c(-20, 20)) 
+
+
+  
+  
+  
+  
+  #SIN eliminar los no significativos
+
+  #uniqueRes <- uniqueRes[uniqueRes$P.Value<0.05,]
+  
+  
+  
+library(fgsea)
+
+ranks <- cbind(uniqueRes$t, uniqueRes$ID,uniqueRes$logFC,rownames(uniqueRes))
+ranks<- as.data.frame(ranks)
+ranks$V3 <- as.numeric(ranks$V3)
+#ranks$V4 <- abs(ranks$V3)
+ranks <- ranks[order(ranks$V3,decreasing = T),]
+
+#IDs$hgnc_id <- gsub("HGNC:", "", IDs$hgnc_id)
+
+ranks <- na.omit(ranks)
+
+#uniqueIDs <- IDs[!duplicated(IDs$hgnc_id),]
+
+#ranks$V5 <- IDs$hgnc_id[IDs$hgnc_symbol %in% ranks$V2] #replacement has 154065 rows, data has 78646
+#ranks$V5 <- IDsCanonical$hgnc_id[IDsCanonical$hgnc_symbol %in% ranks$V2] #replacement has 21795 rows, data has 78646
+#ranks$V5 <- uniqueIDs$hgnc_id[uniqueIDs$hgnc_symbol %in% ranks$V2] #replacement has 14445 rows, data has 78646
+
+
+x <- strsplit(ranks$V4, ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(ranks)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+ranks$V4  <-   y
+
+
+#ranks$V5 <- IDs$hgnc_id[IDs$ensembl_transcript_id %in% ranks$V4] #replacement has 78651  rows, data has 78646
+
+#genes <- IDs[IDs$ensembl_transcript_id %in% ranks$V4,] #replacement has 78651  rows, data has 78646
+
+# genes[!genes$ensembl_transcript_id %in% ranks$V4,]
+
+genes <- genes[!duplicated(genes$ensembl_transcript_id),]
+
+#genes[genes$hgnc_symbol %in% "CCL3L3",]
+
+#genes[genes$ensembl_transcript_id %in% "ENST00000612067",] #Hay 5 transcritos repetidos que corresponden a los genes: CCL3L1 y CCL3L3 !!!!
+
+#ranks$V5 <- genes$hgnc_id[genes$ensembl_transcript_id %in% ranks$V4]  #Me cambia el orden porque el primero que encuentra es true pero me coje el primero de otra. ¿Mismo orden??
+#ranks$V5 <- genes$hgnc_id[ranks$V4  %in% genes$ensembl_transcript_id]
+
+ranks$V5 <- genes$hgnc_id[match(ranks$V4,genes$ensembl_transcript_id)]  #Usar siempre el match!!!!
+#ranks$V5 <- as.numeric(ranks$V5)
+
+#IDs[IDs$hgnc_id %in% "7455",]
+#IDs[IDs$ensembl_transcript_id %in% "ENST00000677814",]
+#ranks$V1 <- as.numeric(ranks$V1)
+ranks <- setNames(ranks$V3, ranks$V5)
+
+#rownames(ranks) <- uniqueIDs$hgnc_id[uniqueIDs$hgnc_symbol %in% ranks$V2]
+
+#uniqueIDs <- IDs[!duplicated(IDs$hgnc_id),]
+
+
+#write.table(ranks, file="/Users/jparra/Documents/Gael/BTKSinergy/ranksALLibruVSonco.csv", sep=",", row.names=F, col.names=TRUE)
+
+#pathways <- gmtPathways("/Users/jparra/Documents/Gael/BTKSinergy/msigdb.v2023.1.Hs.entrez.gmt")
+library(stats)
+
+fgseaRes <- fgsea(pathways = pathways, 
+                  stats    = ranks,
+                  minSize  = 4,
+                  maxSize  = 700)
+
+
+#library(ggplot2)
+plotEnrichment(pathways[["IRF1_Q6"]],ranks)  + labs(title="IRF1_Q6")
+
+#plotEnrichment(pathways[["PUJANA_BRCA1_PCC_NETWORK"]],ranks)  + labs(title="PUJANA_BRCA1_PCC_NETWORK") #Porque es tan poco significativo?
+
+fgseaRes <- fgseaRes[order(fgseaRes$pval),]
+
+#fgseaRes <- as.data.frame(fgseaRes)
+#fgseaRes$leadingEdge <- as.numeric(fgseaRes$leadingEdge)
+
+write.table(fgseaRes[,1:7], file="/Users/jparra/Documents/Gael/BTKSinergy/fgseaResALLibruVSonco2.csv", sep=",", row.names=F, col.names=TRUE)
+
+
+
+
+
+plotEnrichment(pathways[["HP_ABNORMAL_CELL_PROLIFERATION"]],ranks)  + labs(title="HP_ABNORMAL_CELL_PROLIFERATION")
+
+
+
+
+
+#deberia eliminar los NO significativos NO!, gsea va a ahcer el collapse.
+
+#uniqueResSigni <- uniqueRes[uniqueRes$P.Value<0.05,]
+  
+#uniqueResSigni<- uniqueResSigni[uniqueResSigni$logFC >5 | uniqueResSigni$logFC < -5,]
+
+#library(fgsea)
+
+#ranks <- cbind(uniqueResSigni$t, uniqueResSigni$ID,uniqueResSigni$logFC,rownames(uniqueResSigni))
+#ranks<- as.data.frame(ranks)
+#ranks$V3 <- as.numeric(ranks$V3)
+#ranks <- ranks[order(ranks$V3,decreasing = T),]
+#ranks <- na.omit(ranks)
+
+#x <- strsplit(ranks$V4, ".", fixed=T)
+#y<- c()
+for (i in 1:dim(ranks)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+ranks$V4  <-   y
+
+
+genes <- IDs[IDs$ensembl_transcript_id %in% ranks$V4,] #replacement has 78651  rows, data has 78646
+
+genes <- genes[!duplicated(genes$ensembl_transcript_id),]
+
+ranks$V5 <- genes$hgnc_id[match(ranks$V4,genes$ensembl_transcript_id)]  #Usar siempre el match!!!!
+#ranks <- setNames(ranks$V3, ranks$V5)
+
+#ranksDF <-as.data.frame(cbind(ranks$V2, ranks$V3))  #FC
+ranksDF <-as.data.frame(cbind(ranks$V2, ranks$V1))   #t
+
+
+ranksDF <- ranksDF[!ranksDF$V1 %in% "",]
+
+ranksDF$V2 <- as.numeric(ranksDF$V2) 
+ranksDF <- ranksDF[order(ranksDF$V2,decreasing = T),]
+
+write.table(ranksDF, file="/Users/jparra/Documents/Gael/BTKSinergy/ranksALLibruVSonco.rnk", sep='\t', row.names=F, col.names=F)
+#write.table(ranks, file="/Users/jparra/Documents/Gael/BTKSinergy/ranksALLibruVSonco.csv", sep=",", row.names=F, col.names=TRUE)
+
+#pathways <- gmtPathways("/Users/jparra/Documents/Gael/BTKSinergy/msigdb.v2023.1.Hs.entrez.gmt")
+
+fgseaRes <- fgsea(pathways = pathways, 
+                  stats    = ranks,
+                  minSize  = 4,
+                  maxSize  = 700)
+
+plotEnrichment(pathways[["HP_ABNORMAL_CELL_PROLIFERATION"]],ranks)  + labs(title="HP_ABNORMAL_CELL_PROLIFERATION")
+
+
+
+
+
+#heatmap genes ruta interes
+
+listaGenes <- fgseaRes$leadingEdge[match("PID_LIS1_PATHWAY",fgseaRes$pathway)]
+
+
+#countsFinal <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/countsFinalAll.csv", sep = ",")
+#meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+
+samplesNames <- c("UPN1","UPNRES1","REC1","JEKO1","MINO1")
+#samplesNames <- c("UPN1","UPN2","UPN3","UPN4","UPN5","UPN6") #No se puede hacer eBayes sin duplicados!!!
+counts  <-   countsFinal[,match(samplesNames ,colnames(countsFinal))]
+
+metaSub  <-   meta[match(samplesNames ,meta$ID),]
+
+row.names(metaSub) <- metaSub$ID
+metaSub <- metaSub[match(colnames(counts), row.names(metaSub)), ]
+
+
+
+x <- strsplit(rownames(counts), ".", fixed=T)
+y<- c()
+for (i in 1:dim(counts)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+rownames(counts)  <-   y
+
+listaGenes <- as.data.frame(listaGenes)
+
+IDsCanonical <- IDs[IDs$transcript_is_canonical %in% "1",]
+
+transcript <- IDs$ensembl_transcript_id[match(listaGenes$c..1020....1778....8851....7436..,IDs$hgnc_id)]
+transcript <- IDsCanonical$ensembl_transcript_id[match(listaGenes$c..1020....1778....8851....7436..,IDsCanonical$hgnc_id)]
+
+transcript <- IDs$ensembl_transcript_id[IDs$hgnc_id %in% listaGenes$c..1020....1778....8851....7436..] #71??
+
+#countsGenes <- counts[match(rownames(counts), transcript),]
+
+countsGenes <- counts[rownames(counts) %in% transcript,]
+
+
+pheatmap(countsGenes)
+
+
+ordered
+x <- strsplit(rownames(ordered), ".", fixed=T)
+y<- c()
+for (i in 1:dim(ordered)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+rownames(ordered)  <-   y
+
+
+ordered$logFC[rownames(ordered) %in% transcript]
+
+
+
+#Synergy score:
+library(qvalue)
+synergy.pvalues <- res.list$Synergy$P.Value
+pi1 <- 1 - qvalue(synergy.pvalues)$pi0
+print(pi1)
+
+plot.new()
+text(0.4,0.75,labels=paste0("\n",round(pi1 * 100, 2), 
+                            "% non-null \np-values and \n", 
+                            round(sum(res.list$Synergy$adj.P.Val < 0.1) *
+                                    100/length(res.list$Synergy$ID), 2), 
+                            " % of genes with \nsynergy FDR < 0.1"))
+
+
+
+
+#power to detect synergistic effects
+
+SE <- sqrt(fit.cont$s2.post) * fit.cont$stdev.unscaled
+
+sig1 <- median(SE[,"Additive"])
+sig2 <- median(SE[,"Combinatorial"])
+g <- power.compare.logFC(sig1, sig2, N = 4, N_other = c(4, 6, 8, 10, 14,20,27), 
+                         alpha = 0.05, n_tests = 20000)
+print(g)
+
+#g <- power.compare.logFC(sig1, sig2, N = 27, N_other = c(4, 6, 8, 10, 14), 
+                        # alpha = 0.05, n_tests = 20000)
+#print(g)
+
+
+
+
+
+
+
+genes[genes$hgnc_symbol %in% "NOTCH",]
+
+
+
+
+x <- strsplit(rownames(countsFinal), ".", fixed=T)
+
+y<- c()
+for (i in 1:194142) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+rownames(countsFinal)<- y
+
+countsFinal[rownames(countsFinal) %in% "ENST00000651671",] #NOTCH1
+
+
+
+```
+
+
+
+#MINO: mino control vs Todas control
+
+
+
+
+
+```{r mino control}
+
+
+
+
+```
+
+
+
+
+
+#UPN UPNRES ONCO_IBRU HEATMAP
+
+
+
+
+
+```{r ONCO_IBRUheat}
+
+
+samplesNames <- c("UPN1","UPN2","UPN4","UPN5","UPNRES1","UPNRES2","UPNRES4","UPNRES5")
+
+counts  <-   countsFinal[,match(samplesNames ,colnames(countsFinal))]
+
+metaSub  <-   meta[match(samplesNames ,meta$ID),]
+
+
+
+dds <- DESeqDataSetFromMatrix(countData = counts,
+                              colData = metaSub,
+                              #design= ~ TREATMENT + CELL.LINE) 
+                              #design= ~ CELL.LINE + TREATMENT) 
+                              design= ~ TREATMENT) 
+
+
+
+
+nrow(dds)
+## 194142
+keep <- rowSums(counts(dds)) > 1
+dds <- dds[keep,]
+nrow(dds)
+#107676
+
+
+# variance stabilizing transformation (VST)
+vsd <- vst(dds, blind = FALSE)
+
+
+
+#library("genefilter")
+topVarGenes <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 100)
+mat  <- assay(vsd)[ topVarGenes, ]
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+#library(pheatmap)
+
+x <- strsplit(rownames(mat), ".", fixed=T)
+
+y<- c()
+#for (i in 1:107676) {
+for (i in 1:100) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+rownames(mat)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+#pheatmap(mat, annotation_col = anno)
+
+
+#plot <-pheatmap(mat, annotation_col = anno, fontsize_row = 12,cutree_rows=5)
+#library(ggplot2)
+#ggsave(plot, filename = "/Users/jparra/Documents/Gael/BTKSinergy/Graficas2.pdf", device = cairo_pdf, 
+ #      width = 40, height = 30, units = "in")
+
+
+
+#plot.clust <- cbind(mat,  cluster = cutree(plot$tree_row,  k = 2))
+  #write.table(plot.clust, "/Users/jparra/Documents/Gael/BTKSinergy/pheatmapGenes2.csv", sep = ",", row.names = TRUE)
+
+
+
+#Deseq
+#dds <- DESeq(dds)
+#res <- results(dds)
+
+#resultsNames(dds)
+
+
+#res <- results(dds, name="MINOCL_SI_vs_NO")
+
+
+
+
+
+#heatmap genes de interes:
+#mat  <- assay(vsd)[ topVarGenes, ]
+#mat  <- rownames(assay(vsd))[ topVarGenes, ]
+vsdDF <- as.data.frame(assay(vsd))
+#rownames(assay(vsd))
+
+x <- strsplit(rownames(vsdDF), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(vsdDF)[[1]]) {
+#for (i in 1:100) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+vsdDF$genes  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+
+mat  <- vsdDF[match(vsdDF$genes, "IGLV3-19"), ]
+mat  <- vsdDF[vsdDF$genes %in% "IGLV3-19", ]
+mat  <- vsdDF[vsdDF$genes %in% "PAICS", ]
+
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+#rownames(mat)  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+
+pheatmap(mat, annotation_col = anno)
+
+
+
+#TFG
+mat  <- vsdDF[vsdDF$genes %in% "TFG", ]
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+
+pheatmap(mat, annotation_col = anno)
+
+
+
+#SCP2 FC -18
+mat  <- vsdDF[vsdDF$genes %in% "SCP2", ]
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+
+pheatmap(mat, annotation_col = anno)
+
+
+
+#GTF2H2 t -6
+mat  <- vsdDF[vsdDF$genes %in% "GTF2H2", ]
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+
+pheatmap(mat, annotation_col = anno)
+
+
+
+
+
+
+
+
+#YWHAZ
+mat  <- vsdDF[vsdDF$genes %in% "GTF2H2", ]
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+
+pheatmap(mat, annotation_col = anno)
+
+
+
+
+#2
+#FCRL3
+
+mat  <- vsdDF[vsdDF$genes %in% "FCRL3" ]
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+pheatmap(mat, annotation_col = anno)
+
+
+
+#SCP2
+
+mat  <- vsdDF[vsdDF$genes %in% "SCP2", ]
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+pheatmap(mat, annotation_col = anno)
+
+
+#TAP1
+
+mat  <- vsdDF[vsdDF$genes %in% "TAP1", ]
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+pheatmap(mat, annotation_col = anno)
+
+
+
+#UBE2D3
+
+mat  <- vsdDF[vsdDF$genes %in% "UBE2D3", ]
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+pheatmap(mat, annotation_col = anno)
+
+
+
+#MKNK2
+
+mat  <- vsdDF[vsdDF$genes %in% "MKNK2", ]
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+pheatmap(mat, annotation_col = anno)
+
+
+#RAC2
+
+mat  <- vsdDF[vsdDF$genes %in% "RAC2", ]
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+pheatmap(mat, annotation_col = anno)
+
+
+
+#PTK2B
+
+mat  <- vsdDF[vsdDF$genes %in% "PTK2B", ]
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+pheatmap(mat, annotation_col = anno)
+
+
+#SDCCAG8
+
+mat  <- vsdDF[vsdDF$genes %in% "SDCCAG8", ]
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+
+pheatmap(mat, annotation_col = anno)
+
+#TRIM66
+
+mat  <- vsdDF[vsdDF$genes %in% "TRIM66", ]
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+
+pheatmap(mat, annotation_col = anno)
+
+
+#PARP8
+
+mat  <- vsdDF[vsdDF$genes %in% "PARP8", ]
+mat<-mat[,1:8]
+
+mat  <- mat - rowMeans(mat)
+
+pheatmap(mat, annotation_col = anno)
+
+
+#counts
+rownames  <- rownames(vsdDF)[vsdDF$genes %in% "PARP8" ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] #PARP8
+
+pheatmap(heatmapCounts, annotation_col = anno)
+
+
+#FCRL3
+
+rownames  <- rownames(vsdDF)[vsdDF$genes %in% "FCRL3" ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] #PARP8
+pheatmap(heatmapCounts, annotation_col = anno)
+
+
+rownames  <- rownames(vsdDF)[vsdDF$genes %in% "MKNK2" ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] #PARP8
+pheatmap(heatmapCounts, annotation_col = anno)
+
+
+rownames  <- rownames(vsdDF)[vsdDF$genes %in% "L3MBTL3" ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] #PARP8
+pheatmap(heatmapCounts, annotation_col = anno)
+
+rownames  <- rownames(vsdDF)[vsdDF$genes %in% "PAICS" ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] #PARP8
+pheatmap(heatmapCounts, annotation_col = anno)
+
+
+rownames  <- rownames(vsdDF)[vsdDF$genes %in% "TFG" ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] #PARP8
+pheatmap(heatmapCounts, annotation_col = anno)
+
+
+
+
+
+#mitotic:
+
+
+
+genesmitotic <-c("CDK2","CDKN1A","CDKN1B","PLK2","TOPBP1","CHEK1","FOXN3","CHEK2","TREX1","PRAP1","PLK3","HUS1B","ATF2","RAD9B","EME1","SDE2","EME2","FANCD2","SYF2","GIGYF2","GML","BABAM1","DONSON","NOP53","HUS1","MDM2","FOXO4","MRE11","MSH2","MUC1","NBN","ATM","ORC1","RPS27L","MRNIP","WAC","FZR1","TAOK3","TRIAP1","GTSE1","DTL","UIMC1","MAP3K20","PLK1","PML","TIPIN","PPP1R10","RFWD3","PIDD1","PRKDC","TRIM39","TAOK1","RAD9A","RAD17","CCND1","RINT1","RPA2","RPL26","CLSPN","BLM","SETMAR","STK33","BRCA1","TP53","XPC","BRCC3","FBXO31","NEK11","MUS81","CDK5RAP3","CASP2","ABRAXAS1","BRSK1","CDC14B","CRADD","IER3","NAE1","CCNG1","TICRR","ZNF830","TAOK2","BABAM2","MDC1","CDK1","CDC6")
+
+
+rownames  <- rownames(vsdDF)[vsdDF$genes %in% genesmitotic ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] #PARP8
+pheatmap(heatmapCounts, annotation_col = anno)
+
+ranks
+rownames  <- ranks$V4[ranks$V2 %in% genesmitotic ]
+
+
+
+
+#rowsums
+
+
+rownames  <- rownames(vsdDF)[vsdDF$genes %in% "CDK2" ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] 
+topVarGenes <- head(order(rowSums(heatmapCounts), decreasing = TRUE), 1)
+mat  <- heatmapCounts[ topVarGenes, ]
+
+matFull<-c()
+matFull <- rbind(matFull,mat)
+
+
+rownames  <- rownames(vsdDF)[vsdDF$genes %in% "CDKN1A" ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] 
+topVarGenes <- head(order(rowSums(heatmapCounts), decreasing = TRUE), 1)
+mat  <- heatmapCounts[ topVarGenes, ]
+
+matFull <- rbind(matFull,mat)
+
+rownames  <- rownames(vsdDF)[vsdDF$genes %in% "TAOK1" ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] 
+topVarGenes <- head(order(rowSums(heatmapCounts), decreasing = TRUE), 1)
+mat  <- heatmapCounts[ topVarGenes, ]
+
+matFull <- rbind(matFull,mat)
+
+
+pheatmap(matFull, annotation_col = anno)
+
+
+#EEF1A1
+rownames  <- rownames(vsdDF)[vsdDF$genes %in% "EEF1A1" ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] #PARP8
+pheatmap(heatmapCounts, annotation_col = anno)
+
+
+#Cojo las que tengan mas average esxpresion
+
+
+#sigo aqui
+ordered <- res.list[[5]][order(res.list[[5]]$AveExpr, decreasing = TRUE),]
+
+#Tenemos genes duplicados, para obtener los que tienen mas diferencia odenamos por el valor absoluto de fold change y eliminams duplicados.
+#Al eliminar duplicdos elimine todos NA!!
+#uniqueRes <- ordered[!duplicated(ordered$ID),]
+
+
+countsFinal[rownames(countsFinal) %in% "ENST00000676009",] #baja average expresion
+uniqueRes <- ordered[!duplicated(ordered$ID),]
+
+
+rownames  <- rownames(uniqueRes)[uniqueRes$ID %in% genesmitotic ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] #PARP8
+pheatmap(heatmapCounts, annotation_col = anno)
+
+
+#SDCCAG8
+#vsdDF
+mat  <- vsdDF[vsdDF$genes %in% "SDCCAG8", ]
+mat<-mat[,1:8]
+mat  <- mat - rowMeans(mat)
+pheatmap(mat, annotation_col = anno)
+#counts
+rownames  <- rownames(vsdDF)[vsdDF$genes %in% "SDCCAG8" ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] 
+pheatmap(heatmapCounts, annotation_col = anno)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+genesmitotic <-c("FCRL3","MKNK2","RAC2","TAP1","PTK2B","SDCCAG8","TRIM66","CR2","EEF1G","HLA-DRA","PARP8","HSP90B1","SHANK2","ERMAP","C1orf50","HLA-DQA1","ZFYVE27","POT1","CXCR5","GRINA")
+rownames  <- rownames(uniqueRes)[uniqueRes$ID %in% genesmitotic ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] #PARP8
+pheatmap(heatmapCounts, annotation_col = anno)
+
+
+mat  <- vsdDF[vsdDF$genes %in% genesmitotic, ]
+mat<-mat[,1:8]
+mat  <- mat - rowMeans(mat)
+pheatmap(mat, annotation_col = anno)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+genessinergia <-c("ENST00000368184","ENST00000249071","ENST00000354258","ENST00000346049","ENST00000705689","ENST00000367058","ENST00000329251","ENST00000668382","ENST00000292174","ENST00000395068","ENST00000368797","ENST00000354725","ENST00000643273","ENST00000372285","ENST00000202917","ENST00000549422","ENST00000322776","ENST00000216146","ENST00000368046","ENST00000383231","ENST00000315377")
+#rownames  <- rownames(uniqueRes)[uniqueRes$ID %in% genessinergia ]
+heatmapCounts <- counts[rownames(counts) %in% genessinergia,] #PARP8
+pheatmap(heatmapCounts, annotation_col = anno)
+
+
+mat  <- vsdDF[rownames(vsdDF) %in% genessinergia, ]
+mat<-mat[,1:8]
+mat  <- mat - rowMeans(mat)
+pheatmap(mat, annotation_col = anno)
+
+
+
+
+
+#PTMA
+#vsdDF
+mat  <- vsdDF[vsdDF$genes %in% "PTMA", ]
+mat<-mat[,1:8]
+mat  <- mat - rowMeans(mat)
+pheatmap(mat, annotation_col = anno)
+#counts
+rownames  <- rownames(vsdDF)[vsdDF$genes %in% "PTMA" ]
+heatmapCounts <- counts[rownames(counts) %in% rownames,] 
+pheatmap(heatmapCounts, annotation_col = anno)
+
+#RAC2 ENST00000368184
+#vsdDF
+mat  <- vsdDF[rownames(vsdDF) %in% c("ENST00000368184","ENST00000409115"), ]
+mat<-mat[,1:8]
+mat  <- mat - rowMeans(mat)
+pheatmap(mat, annotation_col = anno)
+#counts
+#rownames  <- rownames(vsdDF)[vsdDF$genes %in% "PTMA" ]
+heatmapCounts <- counts[rownames(counts) %in% c("ENST00000368184","ENST00000409115"),] 
+pheatmap(heatmapCounts, annotation_col = anno)
+
+
+
+#genes ruta GOBP_MITOTIC_G2_M_TRANSITION_CHECKPOINT
+genesG2<- c("RAD50","CDKN1A","TOPBP1","CHEK1","FOXN3","PABIR1","HUS1B","SYF2","BABAM1","DONSON","NOP53","HUS1","FOXO4","MRE11","NBN","ATM","ORC1","MRNIP","FZR1","TAOK3","DTL","UIMC1","PLK1","CHFR","TRIM39","TAOK1","BARD1","INIP","RAD17","RBBP8","RINT1","CLSPN","BLM","NABP1","INTS3","BRCA1","NABP2","BRCC3","CDK5RAP3","ABRAXAS1","BRSK1","CDC14B","IER3","NAE1","CCNG1","TICRR","ZNF830","TAOK2","BABAM2","CDK1","CDC6")
+
+
+counts$genes  <-   IDs$hgnc_symbol[match(rownames(counts) ,IDs$ensembl_transcript_id)]
+
+heatmapCounts <- counts[counts$genes %in% genesG2,] #
+anno <- as.data.frame(colData(vsd)[, c("CELL.LINE","TREATMENT")])
+
+pheatmap(heatmapCounts[,1:12], annotation_col = anno)
+
+vsdDF <- as.data.frame(assay(vsd))
+
+x <- strsplit(rownames(vsdDF), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(vsdDF)[[1]]) {
+#for (i in 1:100) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+rownames(vsdDF) <- y
+vsdDF$genes  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+
+mat  <- vsdDF[vsdDF$genes %in% genesG2, ]
+mat<-mat[,1:8]
+mat  <- mat - rowMeans(mat)
+pheatmap(mat, annotation_col = anno)
+
+
+
+
+
+#Quedarme con los mas expresados
+
+
+keep <- rowSums(cpm(counts[]) > 0.25) >= 4
+
+#topExpGenes <- head(order(rowSums(heatmapCounts), decreasing = TRUE), 1)
+topExpGenes <- order(rowSums(heatmapCounts[,1:12]), decreasing = TRUE)
+heatmapCountsTOP <- heatmapCounts[topExpGenes,]
+
+heatmapCountsTOPUnique <- heatmapCountsTOP[!duplicated(heatmapCountsTOP$genes),]
+
+transcript <- rownames(heatmapCountsTOPUnique)
+
+pheatmap(heatmapCountsTOPUnique[,1:12], annotation_col = anno)
+rownames(heatmapCountsTOPUnique) <- IDs$hgnc_symbol[match(rownames(heatmapCountsTOPUnique) ,IDs$ensembl_transcript_id)]
+
+
+
+vsdDF$genes  <-   IDs$hgnc_symbol[match(y ,IDs$ensembl_transcript_id)]
+
+mat  <- vsdDF[rownames(vsdDF) %in% transcript, ]
+
+rownames(mat) <- IDs$hgnc_symbol[match(rownames(mat) ,IDs$ensembl_transcript_id)]
+
+mat<-mat[,1:8]
+mat  <- mat - rowMeans(mat)
+pheatmap(mat, annotation_col = anno)
+
+
+
+
+
+```
+
+
+
+
+
+#22. Visualize the categories in heatmaps
+
+
+
+
+
+```{r heatmaps}
+
+saveRDS(res.list, "/Users/jparra/Documents/Gael/BTKSinergy/res.lis.rds")
+#20
+
+colnames(res.list$Additive)
+log2FC.matrix <- Reduce(function(x,y) merge(x,y,by="ID", all = F),
+                        list(res.list$Additive[,c(1,2,6,7)],
+                             res.list$Combinatorial[,c(1,2,6,7)],
+                             res.list$Synergy[,c(1,2,6,7)]))
+
+#Merge por transcrito no genename
+
+
+
+
+colnames(log2FC.matrix)
+
+colnames(log2FC.matrix) <- c("ID","Additive.logFC", "Additive.t" ,"Additive.FDR", 
+                             "Combinatorial.logFC", "Combinatorial.t", "Combinatorial.FDR", 
+                             "Synergistic.logFC", "Synergistic.t", "Synergistic.FDR")
+rownames(log2FC.matrix) <- log2FC.matrix$ID
+#Add a column assigning synergistic categories to each gene using the categorize.synergy() function, which takes the previously created matrix and the expression cutoff into account.
+
+
+categorize.synergy <- function(logFCmatrix, meanSE){
+  m <- logFCmatrix
+  m$magnitude.syn <- NA
+  for (i in 1:length(m$ID)){
+    if (m$Synergistic.logFC[i] > meanSE){
+      if (m$Additive.logFC[i] < -meanSE){
+        if (m$Combinatorial.logFC[i] > meanSE){
+          m$magnitude.syn[i] = "more.up"
+        } else m$magnitude.syn[i] = "less.down"
+      } else m$magnitude.syn[i] = "more.up"
+    }
+    else if (m$Synergistic.logFC[i] < -meanSE){
+      if (m$Additive.logFC[i] > meanSE){
+        if (m$Combinatorial.logFC[i] < -meanSE){
+          m$magnitude.syn[i] = "more.down"
+        } else m$magnitude.syn[i] = "less.up"
+      } else m$magnitude.syn[i] = "more.down"
+    } else m$magnitude.syn[i] = "same"
+  }
+  m$magnitude.syn <- as.factor(m$magnitude.syn)
+  return(m)
+}
+
+SE <- sqrt(fit.cont$s2.post) * fit.cont$stdev.unscaled
+
+meanSE = mean(SE[,c(1,2,3,4,5)])
+
+log2FC.matrix <- categorize.synergy(log2FC.matrix, meanSE)
+#write.csv(log2FC.matrix, paste0("results/", experiment.title, "_LogFC-FDR-synergy_matrix.csv"))
+
+library(dplyr)
+#genes.per.category <- count(log2FC.matrix, "magnitude.syn")
+#print(genes.per.category)
+
+#Create heatmaps of the log2FC in the additive and the combinatorial comparisons for each synergy category (Fig. 6D).
+
+#pdf(paste0("results/", experiment.title, "-9_heatmaps_log2FC-Add-vs-Combi.pdf"))
+
+#install.packages("EBImage")
+#BiocManager::install("EBImage")
+
+library(EBImage)
+library(GiNA)
+
+for (i in 1:length(levels(log2FC.matrix$magnitude.syn))){
+  breaks <- c(seq(-6, -0.3,by=0.1),seq(0.3, 6,by=0.1))
+  breaks <- append(breaks, -9,0)
+  breaks <- append(breaks, 9)
+  tmp <- log2FC.matrix[log2FC.matrix$magnitude.syn == 
+                         levels(log2FC.matrix$magnitude.syn)[i],
+                       c("Additive.logFC","Combinatorial.logFC")]
+  h <- pheatmap(tmp,
+                #kmeans_k = 30, 
+                #annotation_row = rownames(tmp),
+                #cellwidth = 70, cellheight = 5,
+                border_color = NA, 
+                breaks=breaks,
+                cluster_cols = F,
+                #show_rownames = F,
+                color = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(117),
+                main = paste0("logFC expected vs. measured:\n",
+                              levels(log2FC.matrix$magnitude.syn)[i]))
+  print(h)
+}
+
+
+pheatmap(tmp,kmeans_k = 30)
+pheatmap(tmp)
+colnames(res.list$Additive)
+
+
+#Voy a en log2FC.matrix quedarme con los unicos que tengan mas baja FDR.
+
+
+log2FC.matrixOrder <- log2FC.matrix[order(log2FC.matrix$Synergistic.logFC, decreasing = F),]
+
+log2FC.matrixOrder$ID<-  IDs$hgnc_symbol[match(log2FC.matrixOrder$ID ,IDs$ensembl_transcript_id)]
+
+log2FC.matrixOrderUnique <- log2FC.matrixOrder[!duplicated(log2FC.matrixOrder$ID),]
+
+
+
+
+for (i in 1:length(levels(log2FC.matrixOrderUnique$magnitude.syn))){
+  breaks <- c(seq(-6, -0.3,by=0.1),seq(0.3, 6,by=0.1))
+  breaks <- append(breaks, -9,0)
+  breaks <- append(breaks, 9)
+  tmp <- log2FC.matrixOrderUnique[log2FC.matrixOrderUnique$magnitude.syn == 
+                         levels(log2FC.matrixOrderUnique$magnitude.syn)[i],
+                       c("Additive.logFC","Combinatorial.logFC")]
+  h <- pheatmap(tmp,
+                #kmeans_k = 30, 
+                #annotation_row = rownames(tmp),
+                #cellwidth = 70, cellheight = 5,
+                border_color = NA, 
+                breaks=breaks,
+                cluster_cols = F,
+                cluster_rows = F,
+                show_rownames = T,
+                color = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(117),
+                main = paste0("logFC expected vs. measured:\n",
+                              levels(log2FC.matrixOrderUnique$magnitude.syn)[i]))
+  print(h)
+}
+
+
+
+
+
+genesG2<- c("RAD50","CDKN1A","TOPBP1","CHEK1","FOXN3","PABIR1","HUS1B","SYF2","BABAM1","DONSON","NOP53","HUS1","FOXO4","MRE11","NBN","ATM","ORC1","MRNIP","FZR1","TAOK3","DTL","UIMC1","PLK1","CHFR","TRIM39","TAOK1","BARD1","INIP","RAD17","RBBP8","RINT1","CLSPN","BLM","NABP1","INTS3","BRCA1","NABP2","BRCC3","CDK5RAP3","ABRAXAS1","BRSK1","CDC14B","IER3","NAE1","CCNG1","TICRR","ZNF830","TAOK2","BABAM2","CDK1","CDC6")
+
+
+#log2FC.matrixOrderUniqueG2<- log2FC.matrixOrderUnique[match(log2FC.matrixOrderUnique$ID,genesG2),]
+log2FC.matrixOrderUniqueG2<- log2FC.matrixOrderUnique[log2FC.matrixOrderUnique$ID %in% genesG2,]
+
+
+rownames(log2FC.matrixOrderUniqueG2) <- log2FC.matrixOrderUniqueG2$ID
+
+i<-5
+#for (i in 1:length(levels(log2FC.matrixOrderUniqueG2$magnitude.syn))){
+for (i in 2:5){
+  breaks <- c(seq(-6, -0.3,by=0.1),seq(0.3, 6,by=0.1))
+  breaks <- append(breaks, -9,0)
+  breaks <- append(breaks, 9)
+  tmp <- log2FC.matrixOrderUniqueG2[log2FC.matrixOrderUniqueG2$magnitude.syn == 
+                         levels(log2FC.matrixOrderUniqueG2$magnitude.syn)[i],
+                       c("Additive.logFC","Combinatorial.logFC")]
+  h <- pheatmap(tmp,
+                #kmeans_k = 30, 
+                #annotation_row = rownames(tmp),
+                #cellwidth = 70, cellheight = 5,
+                border_color = NA, 
+                breaks=breaks,
+                cluster_cols = F,
+                show_rownames = T,
+                color = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(117),
+                main = paste0("logFC expected vs. measured:\n",
+                              levels(log2FC.matrixOrderUniqueG2$magnitude.syn)[i]))
+  print(h)
+}
+
+
+
+#piechart
+
+
+library(ggplot2)
+library(wesanderson)
+zissou <- wes_palette("Zissou1", 6, type = "continuous")
+
+
+log2FC.matrix <- categorize.synergy(log2FC.matrix, meanSE)
+#genes.per.category <- count(log2FC.matrix, "magnitude.syn")
+#genes.per.category <- count(log2FC.matrix$magnitude.syn)
+#genes.per.category <- count(a)
+#a<- as.vector(log2FC.matrix$magnitude.syn)
+
+
+genes.per.category<- as.data.frame(table(log2FC.matrix$magnitude.syn))
+
+#genes.per.category$category <- factor(log2FC.matrix$magnitude.syn,
+                                     # levels=c("same", "less.up", "less.down", "more.up", "more.down"))
+
+#genes.per.category$percent <- paste0(round(genes.per.category$freq*100/sum(genes.per.category$freq), 0), " %")
+
+print(genes.per.category)
+
+
+q <- ggplot(genes.per.category, aes(x = "", y = Freq, fill = Var1)) +
+  geom_col() +
+  coord_polar("y", start=0) + 
+  scale_fill_manual(values=zissou) +
+  theme_void()
+#pdf(paste0("results/", experiment.title, "-8_synergy-categories_pie-chart.pdf"))
+print(q)
+
+
+
+#piechart unique
+log2FC.matrixOrderUnique
+log2FC.matrix <- categorize.synergy(log2FC.matrixOrderUnique, meanSE)
+
+
+
+genes.per.category<- as.data.frame(table(log2FC.matrixOrderUnique$magnitude.syn))
+
+#genes.per.category$category <- factor(log2FC.matrix$magnitude.syn,
+                                     # levels=c("same", "less.up", "less.down", "more.up", "more.down"))
+
+#genes.per.category$percent <- paste0(round(genes.per.category$freq*100/sum(genes.per.category$freq), 0), " %")
+
+print(genes.per.category)
+
+
+q <- ggplot(genes.per.category, aes(x = "", y = Freq, fill = Var1)) +
+  geom_col() +
+  coord_polar("y", start=0) + 
+  scale_fill_manual(values=zissou) +
+  theme_void()
+#pdf(paste0("results/", experiment.title, "-8_synergy-categories_pie-chart.pdf"))
+print(q)
+
+#GOBP_CELL_CYCLE_DNA_REPLICATION
+CELL_CYCLE <- c("ZMPSTE24","DBF4","E2F7","DACH1","DNA2","FEN1","FBXO5","RPA4","DONSON","NUGGC","LIG1","MCM2","MCM3","MCM4","MCM6","GMNN","PCNA","RTF2","RTEL1","POLA1","ATRX","INO80","TIPIN","AICDA","WIZ","RAD51","SENP2","UPF1","BCL6","BLM","GINS3","BRCA2","TERF1","TERF2","WRN","E2F8","ATAD5","DBF4B","CDT1","CDC7","CDC45","ZPR1","ZNF830","GINS1")
+
+
+#g2cellCycle<- c(genesG2,CELL_CYCLE)
+
+log2FC.matrixOrderUniqueCELL_CYCLE<- log2FC.matrixOrderUnique[log2FC.matrixOrderUnique$ID %in% CELL_CYCLE,]
+
+log2FC.matrixg2cellCycle<- rbind(log2FC.matrixOrderUniqueG2,log2FC.matrixOrderUniqueCELL_CYCLE)
+
+log2FC.matrixg2cellCycle <- log2FC.matrixg2cellCycle[!duplicated(log2FC.matrixg2cellCycle$ID),]
+rownames(log2FC.matrixg2cellCycle) <- log2FC.matrixg2cellCycle$ID
+
+for (i in 2:5){
+  breaks <- c(seq(-6, -0.3,by=0.1),seq(0.3, 6,by=0.1))
+  breaks <- append(breaks, -9,0)
+  breaks <- append(breaks, 9)
+  tmp <- log2FC.matrixg2cellCycle[log2FC.matrixg2cellCycle$magnitude.syn == 
+                         levels(log2FC.matrixg2cellCycle$magnitude.syn)[i],
+                       c("Additive.logFC","Combinatorial.logFC")]
+  if(!dim(tmp)[[1]]==0 )
+  h <- pheatmap(tmp,
+                #kmeans_k = 30, 
+                #annotation_row = rownames(tmp),
+                #cellwidth = 70, cellheight = 5,
+                border_color = NA, 
+                breaks=breaks,
+                cluster_cols = F,
+                cluster_rows = F,
+                show_rownames = T,
+                color = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(117),
+                main = paste0("logFC expected vs. measured:\n",
+                              levels(log2FC.matrixg2cellCycle$magnitude.syn)[i]))
+  print(h)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+#unir rutas g2
+
+#GOBP_REGULATION_OF_CELL_CYCLE_G2_M_PHASE_TRANSITION
+#GOBP_CELL_CYCLE_G2_M_PHASE_TRANSITION
+#GOBP_MITOTIC_G2_M_TRANSITION_CHECKPOINT
+#GOBP_NEGATIVE_REGULATION_OF_CELL_CYCLE_G2_M_PHASE_TRANSITION
+
+
+#GOBP_REGULATION_OF_CELL_CYCLE_G2_M_PHASE_TRANSITION
+genesG21<-c("RAD50","CDK2","CDK3","CDK4","CDK6","CDKN1A","CENPF","TOPBP1","CHEK1","FOXN3","PABIR1","HUS1B","NEK10","STOX1","FHL1","ATF5","PAXIP1","BRD4","SIN3A","SYF2","FBXO5","KCNH5","VPS4A","BABAM1","GPR132","DONSON","NOP53","HSPA2","HUS1","APP","USP17L2","MIR195","MIR19B1","MECP2","FOXO4","MRE11","NBN","ATM","NPM1","ORC1","RRM2B","PBX1","ING4","MRNIP","FZR1","TAOK3","DTL","UIMC1","PLK1","PINX1","USP47","PKIA","CHFR","RCC2","TRIM39","AVEN","MTA3","TAOK1","BARD1","INIP","RAD17","RAD21","RAD51C","RAD51B","RBBP8","CCND1","RFPL1","RINT1","MIIP","RRM1","CLSPN","BLM","NABP1","INTS3","BRCA1","","TP53","WNT10B","NABP2","BRCC3","RNASEH2B","ATAD5","CTC1","DBF4B","CDK5RAP3","CDC7","ABRAXAS1","DYRK3","BRSK1","ZFYVE19","CDC14B","RAB11A","IER3","NAE1","CCNB1","PHOX2B","CCNG1","TICRR","ZNF830","CCNQ","AURKB","CHMP4C","TAOK2","VPS4B","MACROH2A1","BABAM2","CDK1","CDC6","KIF14","CDC25A","CDC25B","CDC25C")
+
+#GOBP_CELL_CYCLE_G2_M_PHASE_TRANSITION
+genesG22<- c("USH1C","RAD50","CDK2","CDK3","CDK4","CDK6","CDKN1A","AKAP8","NDC80","CENPF","KHDRBS1","NES","ARPP19","TOPBP1","CHEK1","CIT","FOXN3","CHEK2","PABIR1","PLK3","HUS1B","NEK10","DNM2","ENSA","ESRRB","STOX1","CCNY","FHL1","ATF5","PAXIP1","FOXM1","FBXL7","PLCB1","BRD4","SIN3A","SYF2","FBXO5","AKAP8L","KCNH5","VPS4A","CCDC57","BABAM1","GPR132","DONSON","NOP53","HSPA2","HUS1","APP","USP17L2","MIR195","MIR19B1","MECP2","FOXO4","MRE11","NBN","ATM","NPM1","ORC1","RRM2B","PBX1","ING4","MRNIP","FZR1","TAOK3","PPME1","LCMT1","DTL","UIMC1","CDK14","ABCB1","PLK1","PINX1","USP47","PKIA","CHFR","RCC2","TRIM39","AVEN","BACH1","MTA3","TAOK1","BARD1","INIP","RAD17","RAD21","RAD51C","RAD51B","RBBP8","CCND1","RFPL1","RINT1","MIIP","RRM1","CLSPN","BLM","NABP1","INTS3","BRCA1","AURKA","TAF2","TP53","TPD52L1","WEE1","WNT10B","NABP2","FBXL15","BRCC3","RNASEH2B","KDM8","ATAD5","CALM1","CTC1","DBF4B","CDK5RAP3","CALM2","CALM3","CDC7","ABRAXAS1","DYRK3","BRSK1","PPM1D","MASTL","ZFYVE19","CDC14B","RAB11A","IER3","NAE1","CCNA2","CCNB1","PHOX2B","CCNG1","BRSK2","TICRR","PKMYT1","LATS1","CCNB2","ZNF830","CCNQ","AURKB","CHMP4C","TAOK2","VPS4B","MACROH2A1","BABAM2","CDK1","MELK","CDC6","KIF14","CDC25A","CDC25B","CDC25C")
+
+#GOBP_MITOTIC_G2_M_TRANSITION_CHECKPOINT
+genesG23<- c("RAD50","CDKN1A","TOPBP1","CHEK1","FOXN3","PABIR1","HUS1B","SYF2","BABAM1","DONSON","NOP53","HUS1","FOXO4","MRE11","NBN","ATM","ORC1","MRNIP","FZR1","TAOK3","DTL","UIMC1","PLK1","CHFR","TRIM39","TAOK1","BARD1","INIP","RAD17","RBBP8","RINT1","CLSPN","BLM","NABP1","INTS3","BRCA1","NABP2","BRCC3","CDK5RAP3","ABRAXAS1","BRSK1","CDC14B","IER3","NAE1","CCNG1","TICRR","ZNF830","TAOK2","BABAM2","CDK1","CDC6")
+
+
+
+#GOBP_NEGATIVE_REGULATION_OF_CELL_CYCLE_G2_M_PHASE_TRANSITION
+
+genesG24<- c("RAD50,CDKN1A","TOPBP1","CHEK1","FOXN3","PABIR1","HUS1B","FHL1","ATF5","SYF2","VPS4A","BABAM1","GPR132","DONSON","NOP53","HUS1","MIR195","MIR19B1","FOXO4","MRE11","NBN","ATM","ORC1","MRNIP","FZR1","TAOK3","DTL","UIMC1","PLK1","PINX1","USP47","CHFR","TRIM39","AVEN","TAOK1","BARD1","INIP","RAD17","RAD21","RBBP8","RFPL1","RINT1","MIIP","CLSPN","BLM","NABP1","INTS3","BRCA1","NABP2","BRCC3","CDK5RAP3","ABRAXAS1","BRSK1","ZFYVE19","CDC14B","IER3","NAE1","CCNG1","TICRR","ZNF830","AURKB","CHMP4C","TAOK2","MACROH2A1","BABAM2","CDK1","CDC6")
+
+
+
+genesG2<- c(genesG21,genesG22,genesG23,genesG24)
+
+
+genesG2<-genesG2[!duplicated(genesG2)]
+
+
+
+#cell cycle
+
+#GOBP_CELL_CYCLE_DNA_REPLICATION
+#GOBP_REGULATION_OF_CELL_CYCLE_CHECKPOINT
+#GOBP_CELL_CYCLE_CHECKPOINT_SIGNALING
+#GOBP_MITOTIC_CELL_CYCLE_CHECKPOINT_SIGNALING
+
+
+
+
+#GOBP_CELL_CYCLE_DNA_REPLICATION
+genesCELL_CYCLE1<- c("ZMPSTE24","DBF4","E2F7","DACH1","DNA2","FEN1","FBXO5","RPA4","DONSON","NUGGC","LIG1","MCM2","MCM3","MCM4","MCM6","GMNN","PCNA","RTF2","RTEL1","POLA1","ATRX","INO80","TIPIN","AICDA","WIZ","RAD51","SENP2","UPF1","BCL6","BLM","GINS3","BRCA2","TERF1","TERF2","WRN","E2F8","ATAD5","DBF4B","CDT1","CDC7","CDC45","ZPR1","ZNF830","GINS1")
+
+
+
+#GOBP_REGULATION_OF_CELL_CYCLE_CHECKPOINT
+genesCELL_CYCLE2<- c("FEM1B","NDC80","CHEK2","PRAP1","CRY1","DUSP1","ANAPC15","FBXO4","BIRC5","GEN1","INCENP","MAD2L1","DYNC1LI1","LCMT1","MAP3K20","ETAA1","PPP1R10","CDCA8","RFWD3","CDK5RAP2","PCID2","PROX1","CCAR2","BARD1","RAD51","RPA2","BRCA1","BRCA2","TPR","XRCC3","BRCC3","DDX39B","RNASEH2B","WDR76","TTI2","CDT1","MAD1L1","USP44","CUL4A","THOC5","CCNB1","AURKB","BABAM2","MAD2L1BP","TTI1","TELO2","THOC1")
+
+
+
+
+
+#GOBP_CELL_CYCLE_CHECKPOINT_SIGNALING
+genesCELL_CYCLE3<- c("RAD50","FEM1B","CDK2","CDKN1A","CDKN1B","NDC80","MAD2L2","CENPF","PLK2","TOPBP1","CHEK1","FOXN3","ZWINT","CHEK2","TREX1","PABIR1","PRAP1","PLK3","HUS1B","ATF2","CRY1","MAPK14","RAD9B","EME1","SPC24","DTX3L","SDE2","DNA2","DUSP1","E2F1","EME2","ERCC6","FANCD2","INTS7","ANAPC15","SYF2","HINFP","GIGYF2","TIPRL","FBXO6","FBXO4","VPS4A","PRPF19","GML","BABAM1","RPA4","DONSON","NOP53","H2AX","APC","BIRC5","HUS1","GEN1","IK","INCENP","MAD2L1","MDM2","FOXO4","MRE11","EIF2AK4","MSH2","MUC1","NBN","ATM","ORC1","RPS27L","DYNC1LI1","MRNIP","WAC","FZR1","TAOK3","LCMT1","TRIAP1","GTSE1","DTL","UIMC1","MAP3K20","PLK1","PML","ETAA1","ATR","NSUN2","SPDL1","TIPIN","ZWILCH","PPP1R10","CDCA8","RFWD3","PIDD1","CHFR","CDK5RAP2","PCID2","PRKDC","TEX14","PROX1","TRIM39","PSMG2","SPC25","TAOK1","USP28","CAMSAP3","CCAR2","PTPN11","BARD1","RAD1","INIP","RAD9A","RAD17","RAD51","RBBP8","CCND1","RINT1","RPA2","RPL26","CLSPN","BLM","SETMAR","NABP1","INTS3","STK33","BRCA1","BRCA2","BUB1","BUB1B","TP53","TP53BP1","TPR","TTK","XPC","XRCC3","ZNF207","NABP2","BRCC3","DDX39B","RNASEH2B","FBXO31","NEK11","WDR76","TTI2","MUS81","CEP63","CDK5RAP3","CDT1","CDC45","CASP2","NUF2","PARP9","RHNO1","MAD1L1","HASPIN","BRIP1","HORMAD1","USP44","ATRIP","ABRAXAS1","DOT1L","BRSK1","CUL4A","KLHL22","ZFYVE19","CDC14B","THOC5","CRADD","IER3","NAE1","CCNB1","TIMELESS","CCNG1","TICRR","ZNF830","ZW10","BUB3","AURKB","CHMP4C","TRIP13","TAOK2","CLOCK","BABAM2","MAD2L1BP","MDC1","TTI1","KNTC1","CDK1","CDC5L","TELO2","CDC6","CDC20","THOC1")
+
+
+
+#GOBP_MITOTIC_CELL_CYCLE_CHECKPOINT_SIGNALING
+genesCELL_CYCLE4<- c("RAD50","CDK2","CDKN1A","CDKN1B","NDC80","MAD2L2","CENPF","PLK2","TOPBP1","CHEK1","FOXN3","ZWINT","CHEK2","TREX1","PABIR1","PRAP1","PLK3","HUS1B","ATF2","RAD9B","EME1","SPC24","SDE2","DUSP1","EME2","FANCD2","ANAPC15","SYF2","GIGYF2","VPS4A","GML","BABAM1","DONSON","NOP53","APC","BIRC5","HUS1","GEN1","IK","INCENP","MAD2L1","MDM2","FOXO4","MRE11","MSH2","MUC1","NBN","ATM","ORC1","RPS27L","DYNC1LI1","MRNIP","WAC","FZR1","TAOK3","LCMT1","TRIAP1","GTSE1","DTL","UIMC1","MAP3K20","PLK1","PML","SPDL1","TIPIN","ZWILCH","PPP1R10","CDCA8","RFWD3","PIDD1","CHFR","CDK5RAP2","PCID2","PRKDC","TEX14","TRIM39","PSMG2","SPC25","TAOK1","BARD1","INIP","RAD9A","RAD17","RBBP8","CCND1","RINT1","RPA2","RPL26","CLSPN","BLM","SETMAR","NABP1","INTS3","STK33","BRCA1","BUB1","BUB1B","TP53","TPR","TTK","XPC","XRCC3","ZNF207","NABP2","BRCC3","FBXO31","NEK11","MUS81","CDK5RAP3","CDT1","CASP2","NUF2","MAD1L1","HASPIN","USP44","ABRAXAS1","BRSK1","KLHL22","ZFYVE19","CDC14B","CRADD","IER3","NAE1","CCNB1","CCNG1","TICRR","ZNF830","ZW10","BUB3","AURKB","CHMP4C","TRIP13","TAOK2","BABAM2","MAD2L1BP","MDC1","KNTC1","CDK1","CDC6","CDC20")
+
+
+
+genesCELL_CYCLE<- c(genesCELL_CYCLE1,genesCELL_CYCLE2,genesCELL_CYCLE3,genesCELL_CYCLE4)
+
+
+genesCELL_CYCLE<-genesCELL_CYCLE[!duplicated(genesCELL_CYCLE)]
+
+
+
+
+
+log2FC.matrixOrderUniqueCELL_CYCLE<- log2FC.matrixOrderUnique[log2FC.matrixOrderUnique$ID %in% genesCELL_CYCLE,]
+
+log2FC.matrixOrderUniqueG2<- log2FC.matrixOrderUnique[log2FC.matrixOrderUnique$ID %in% genesG2,]
+
+
+log2FC.matrixg2cellCycle<- rbind(log2FC.matrixOrderUniqueG2,log2FC.matrixOrderUniqueCELL_CYCLE)
+
+log2FC.matrixg2cellCycle <- log2FC.matrixg2cellCycle[!duplicated(log2FC.matrixg2cellCycle$ID),]
+rownames(log2FC.matrixg2cellCycle) <- log2FC.matrixg2cellCycle$ID
+
+for (i in 1:5){
+  breaks <- c(seq(-6, -0.3,by=0.1),seq(0.3, 6,by=0.1))
+  breaks <- append(breaks, -9,0)
+  breaks <- append(breaks, 9)
+  tmp <- log2FC.matrixg2cellCycle[ log2FC.matrixg2cellCycle$magnitude.syn == 
+                         levels(log2FC.matrixg2cellCycle$magnitude.syn)[i],
+                       c("Additive.logFC","Combinatorial.logFC")]
+  if(!dim(tmp)[[1]]==0 )
+  h <- pheatmap(tmp,
+                #kmeans_k = 30, 
+                #annotation_row = rownames(tmp),
+                #cellwidth = 70, cellheight = 5,
+                border_color = NA, 
+                breaks=breaks,
+                cluster_cols = F,
+                cluster_rows = F,
+                show_rownames = T,
+                color = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(117),
+                main = paste0("logFC expected vs. measured:\n",
+                              levels(log2FC.matrixg2cellCycle$magnitude.syn)[i]))
+  print(h)
+}
+
+
+#levels(log2FC.matrixg2cellCycle$magnitude.syn)[0]
+#levels(log2FC.matrixg2cellCycle$magnitude.syn)[2]
+#levels(log2FC.matrixg2cellCycle$magnitude.syn)[3]
+#levels(log2FC.matrixg2cellCycle$magnitude.syn)[4]
+#levels(log2FC.matrixg2cellCycle$magnitude.syn)[5]
+
+
+
+
+
+#Antigen presenting
+
+
+#	GOBP_ANTIGEN_PROCESSING_AND_PRESENTATION_OF_EXOGENOUS_PEPTIDE_ANTIGEN_VIA_MHC_CLASS_II
+genesMHC_CLASS_II<- c("IFI30","CTSD","CTSE","CTSL","CTSV","CTSS","DNM2","PIKFYVE","FCER1G","FCGR2B","HLA-DMA","HLA-DMB","HLA-DOA","HLA-DOB","HLA-DPA1","HLA-DPB1","HLA-DQA1","HLA-DQA2","HLA-DQB1","HLA-DQB2","HLA-DRA","HLA-DRB1","HLA-DRB3","HLA-DRB4","HLA-DRB5","LGMN","B2M","TRAF6","UNC93B1","CTSF","CD74")
+
+
+#GOBP_PEPTIDE_ANTIGEN_ASSEMBLY_WITH_MHC_CLASS_II_PROTEIN_COMPLEX
+genesMHC_CLASS_II2<- c("HLA-DMA","HLA-DMB","HLA-DOA","HLA-DOB","HLA-DPA1","HLA-DPB1","HLA-DQA1","HLA-DQA2","HLA-DQB1","HLA-DQB2","HLA-DRA","HLA-DRB1","HLA-DRB3","HLA-DRB4","HLA-DRB5","B2M")
+
+
+#GOBP_PEPTIDE_ANTIGEN_ASSEMBLY_WITH_MHC_PROTEIN_COMPLEX
+genesMHC_CLASS_II3<- c("PDIA3","HLA-DMA","HLA-DMB","HLA-DOA","HLA-DOB","HLA-DPA1","HLA-DPB1","HLA-DQA1","HLA-DQA2","HLA-DQB1","HLA-DQB2","HLA-DRA","HLA-DRB1","HLA-DRB3","HLA-DRB4","HLA-DRB5","TAPBPL","B2M","TAPBP","CALR")
+
+
+
+
+genesMHC<- c(genesMHC_CLASS_II,genesMHC_CLASS_II2,genesMHC_CLASS_II3)
+
+
+genesMHC<-genesMHC[!duplicated(genesMHC)]  #La mitad estan duplicados
+
+
+log2FC.matrixOrderUniqueMHC<- log2FC.matrixOrderUnique[log2FC.matrixOrderUnique$ID %in% genesMHC,]
+
+#log2FC.matrixg2cellCycle <- log2FC.matrixg2cellCycle[!duplicated(log2FC.matrixg2cellCycle$ID),]
+rownames(log2FC.matrixOrderUniqueMHC) <- log2FC.matrixOrderUniqueMHC$ID
+
+for (i in 1:5){
+  breaks <- c(seq(-6, -0.3,by=0.1),seq(0.3, 6,by=0.1))
+  breaks <- append(breaks, -9,0)
+  breaks <- append(breaks, 9)
+  tmp <- log2FC.matrixOrderUniqueMHC[log2FC.matrixOrderUniqueMHC$magnitude.syn == 
+                         levels(log2FC.matrixOrderUniqueMHC$magnitude.syn)[i],
+                       c("Additive.logFC","Combinatorial.logFC")]
+  if(!dim(tmp)[[1]]==0 )
+  h <- pheatmap(tmp,
+                #kmeans_k = 30, 
+                #annotation_row = rownames(tmp),
+                #cellwidth = 70, cellheight = 5,
+                border_color = NA, 
+                breaks=breaks,
+                cluster_cols = F,
+                cluster_rows = T,
+                show_rownames = T,
+                color = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(117),
+                main = paste0("logFC expected vs. measured:\n",
+                              levels(log2FC.matrixOrderUniqueMHC$magnitude.syn)[i]))
+  print(h)
+}
+
+
+#-sinergia abema ibru
+#-Sinergia con jeko rec
+#-geo2R
+#-Kegg
+
+```
+
+
+#fosfoproteomics
+
+
+```{r fosfo}
+
+
+#Los genes que vemos como diferencialmente expresados(RNA-seq) al comparar los perfiles transcriptomicos de las muestra de control versus las tratadas con onconova deberian crear als correspondiente proteinas. cuales son las que si? estan fosforiladas?
+#estas proteinas estan relacionadas con las rutas que obtuvimos de RNA-seq
+
+
+
+#uniprot
+ listMarts()
+uniProt <- useMart(biomart = "uniprot_mart", dataset = "uniprot")
+
+getBM(attributes = c ("name", "go_id", "go_name"), values = "E9HCD7", filter = "accession", mart = uniProt)
+
+
+
+
+
+
+uniProt <- useMart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl")
+listAttributes(mart)
+
+
+IDs <- getBM(attributes = c("ensembl_transcript_id","hgnc_symbol","hgnc_id","transcript_is_canonical"),
+                 filters = "ensembl_transcript_id", values = y,mart = mart)
+
+
+
+IDs <- getBM(attributes = c("ensembl_transcript_id","hgnc_symbol","hgnc_id","transcript_is_canonical","uniprot_gn_id"),
+                 filters = "ensembl_transcript_id", values = y,mart = mart)
+
+
+
+
+
+#https://www.syngoportal.org/convert
+
+idmap <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/idmap.csv", sep = ",")
+
+
+#cargo datos de proteomica para no resistentes. Solo los presentes en ambos
+#-PROBLEMA: En RNA-seq estoy utilizando UPN y UPNresistant porque no tengo duplicados
+
+CNvsOnco <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/final_toptables_No_Res (1)CNvsOnco.csv", sep = ",")
+
+CNvsOncoSigni <- CNvsOnco[CNvsOnco$P.Value < 0.01,]
+
+#CNvsOncoSigni$geneName <- idmap$name[idmap$query %in% CNvsOncoSigni$accession]
+
+
+
+
+
+x <- strsplit(CNvsOncoSigni$accession, "|", fixed=T)
+
+
+
+#x[[2]][1]
+
+#x[[1:474]]
+
+y<- c()
+for (i in 1:101) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+CNvsOncoSigni$geneName <- idmap$name[idmap$query %in% y]
+
+#CNvsOncoSigni$geneName <- idmap$name[match(idmap$query, y)]
+CNvsOncoSigni$geneName <- idmap$symbol[match(y,idmap$query)]
+CNvsOncoSigni$description <- idmap$name[match(y,idmap$query)]
+
+
+idmap[idmap$query %in% "Q08999",]
+
+y
+
+
+
+
+ranks <- cbind(CNvsOncoSigni$geneName,CNvsOncoSigni$P.Value)
+
+
+
+
+
+#Tengo 101 genes significativos para la proteomica pero 8602 transcritos.
+#Filtro y me quedo con los 101 en comun.
+result0.05 #transcriptomaica
+CNvsOncoSigni # fosfo
+
+result0.05$geneName <- IDs$hgnc_symbol[match(result0.05$ID,IDs$ensembl_transcript_id)]
+result0.05 <- result0.05[!result0.05$geneName %in% "",]
+
+#FCtable <- result0.05[match(result0.05$geneName, CNvsOncoSigni$geneName),c("log2FoldChange","geneName")] todo NA
+FCtable <- result0.05[match(CNvsOncoSigni$geneName,  result0.05$geneName),c("log2FoldChange","geneName")] # todo NA
+
+#FCtable <- result0.05[match(result0.05$geneName, CNvsOncoSigni$geneName),]
+
+FCtable <- result0.05[result0.05$geneName %in% CNvsOncoSigni$geneName,c("log2FoldChange","geneName")]
+
+
+
+#FCtable<- FCtable[!duplicated(FCtable$geneName),]
+
+#FCtable$logFCfosfo <- CNvsOncoSigni$logFC[match(CNvsOncoSigni$geneName,FCtable$geneName)]
+
+CNvsOncoSigni<- CNvsOncoSigni[!duplicated(CNvsOncoSigni$geneName),]
+
+FCtable$logFCfosfo <- CNvsOncoSigni$logFC[CNvsOncoSigni$geneName %in% FCtable$geneName]
+
+
+
+
+ggplot(FCtable, aes(logFCfosfo, log2FoldChange)) +
+  geom_point() +  
+  geom_hline(yintercept = 0) + 
+  geom_vline(xintercept = 0) +
+  geom_text(aes(label= geneName))
+
+#El FC en ambas comparaciones tiene el mismo orden? porque sino FC puede significar la contrario.
+
+
+
+
+result0.05
+
+
+
+
+#FCtable rna-fosfo. Tiene sentido?
+
+
+CNvsOncoFosfo <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_Proteome_final_TT_NRes_CNvsONCO.csv", sep = ",")
+
+
+CNvsOncoFosfo
+CNvsOncoFosfoSigni <- CNvsOncoFosfo[CNvsOncoFosfo$P.Value < 0.05,]
+
+FCtable <- result0.05[result0.05$geneName %in% CNvsOncoFosfoSigni$gene_names,c("log2FoldChange","geneName")]
+
+FCtable$logFCfosfo <- CNvsOncoFosfoSigni$logFC[CNvsOncoFosfoSigni$gene_names %in% FCtable$geneName]
+
+
+
+
+ggplot(FCtable, aes(logFCfosfo, log2FoldChange)) +
+  geom_point() +  
+  geom_hline(yintercept = 0) + 
+  geom_vline(xintercept = 0) +
+  geom_text(aes(label= geneName))
+
+
+
+
+#FCtable proteoma-fosfo. 
+CNvsOncoFosfo <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_Proteome_final_TT_NRes_CNvsONCO.csv", sep = ",")
+CNvsOncoFosfoSigni <- CNvsOncoFosfo[CNvsOncoFosfo$P.Value < 0.05,]
+#Solo tenemos 22 proteinas fosforiladas significativamente(p.value <0.05)
+
+CNvsOncoProteo <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/final_toptables_No_Res (1)CNvsOnco.csv", sep = ",")
+CNvsOncoProteoSigni <- CNvsOncoProteo[CNvsOncoProteo$P.Value < 0.05,]
+
+#CNvsOncoProteoSigni$geneName <- IDs$hgnc_symbol[match(CNvsOncoProteoSigni$ID,IDs$ensembl_transcript_id)]
+#result0.05 <- result0.05[!result0.05$geneName %in% "",]
+
+x <- strsplit(CNvsOncoProteoSigni$accession, "|", fixed=T)
+
+
+y<- c()
+for (i in 1:474) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+idmap <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/idmap.csv", sep = ",")
+
+#CNvsOncoProteoSigni$geneName <- idmap$name[idmap$query %in% y]
+CNvsOncoProteoSigni$geneName <- idmap$symbol[match(y,idmap$query)]
+CNvsOncoProteoSigni$description <- idmap$name[match(y,idmap$query)]
+
+
+
+
+FCtable <- CNvsOncoProteoSigni[CNvsOncoProteoSigni$geneName %in% CNvsOncoFosfoSigni$gene_names,c("logFC","geneName")]
+
+FCtable$logFCfosfo <- CNvsOncoFosfoSigni$logFC[CNvsOncoFosfoSigni$gene_names %in% FCtable$geneName]
+
+
+
+
+ggplot(FCtable, aes(logFCfosfo, logFC)) +
+  geom_point() +  
+  geom_hline(yintercept = 0) + 
+  geom_vline(xintercept = 0) +
+  geom_text(aes(label= geneName))
+
+
+
+#a
+
+
+```
+-Sinergia fosfo,proteomics
+
+# Sinergia proteomics
+
+
+```{r fosfosinergy}
+
+#1. obtenemos counts
+
+
+
+CNvsOncoFosfoOnco <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Phosphoproteome_final_TT_NResOncovsControl.csv", sep = ",")
+#CNvsOncoFosfoSigni <- CNvsOncoFosfo[CNvsOncoFosfo$P.Value < 0.05,]
+
+
+#CNvsOncoFosfo$
+countsOnco  <- CNvsOncoFosfoOnco[,c("ON123300.10","ON123300.2","ON123300.6","Control.1","Control.5","Control.9")]
+
+
+rownames(countsOnco) <- CNvsOncoFosfoOnco$protein_group
+
+
+
+
+
+
+CNvsOncoFosfoIbru <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Phosphoproteome_final_TT_NResIbru.csv", sep = ",")
+#CNvsOncoFosfoSigni <- CNvsOncoFosfo[CNvsOncoFosfo$P.Value < 0.05,]
+
+
+#CNvsOncoFosfoIbru$
+#countsIbru  <- CNvsOncoFosfoIbru[,c("Ibrutinib.11","Ibrutinib.3","Ibrutinib.7","Control.1","Control.5","Control.9")]
+
+#Comprobar que el valor de los controles es el mismo en todas las paginas del excel
+
+countsIbru  <- CNvsOncoFosfoIbru[,c("Ibrutinib.11","Ibrutinib.3","Ibrutinib.7")]
+
+rownames(countsIbru) <- CNvsOncoFosfoIbru$protein_group
+
+
+
+
+
+
+
+CNvsOncoFosfoCombo <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Phosphoproteome_final_TT_NResCombo.csv", sep = ",")
+#CNvsOncoFosfoSigni <- CNvsOncoFosfo[CNvsOncoFosfo$P.Value < 0.05,]
+
+
+CNvsOncoFosfoCombo$Combo.12
+#countsCombo  <- CNvsOncoFosfoCombo[,c("Combo.12","Combo.4","Combo.8","Control.1","Control.5","Control.9")]
+
+CNvsOncoFosfoCombo$Combo.12
+countsCombo  <- CNvsOncoFosfoCombo[,c("Combo.12","Combo.4","Combo.8")]
+
+rownames(countsCombo) <- CNvsOncoFosfoCombo$protein_group
+
+
+
+
+
+#uno con cbind para probar pero deberia hacer un match
+#counts<- cbind(countsOnco,countsIbru,countsCombo)
+
+
+counts <- merge(countsOnco,countsIbru, by=0)
+
+rownames(counts) <- counts$Row.names
+
+counts<- counts[,2:10]
+
+counts <- merge(counts,countsCombo, by=0)
+
+rownames(counts) <- counts$Row.names
+
+counts<- counts[,2:13]
+
+#x <- strsplit(counts$accession, "|", fixed=T)
+#y<- c()
+#for (i in 1:dim(counts)[[1]]) {
+  #print(i)
+##  y[i] <- x[[i]][1]
+#}
+
+
+#idmap <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/idmap.csv", sep = ",")
+
+#CNvsOncoProteoSigni$geneName <- idmap$name[idmap$query %in% y]
+#counts$geneName <- idmap$symbol[match(y,idmap$query)]
+#counts$description <- idmap$name[match(y,idmap$query)]
+
+
+#cual es la diferencia entre proteinas con el mismo nombre?
+
+
+
+#rownames(counts) <- idmap$symbol[match(y,idmap$query)]
+
+
+## 2.Obtenemos metadata
+#meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/metadata_proteomic.csv", row.names = 1)
+
+meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/metadata_proteomic.csv")
+
+
+colnames(meta)<- meta[1,]
+#rownames(meta)<- meta[1,]
+
+meta<- meta[2:25,]
+
+
+##3.Calculamos sinergia
+
+#7
+y <- DGEList(counts)
+y <- calcNormFactors(y)
+
+design <- model.matrix(~ 0 + Treatment  + `Cell line`, meta) #B
+#design <- model.matrix(~ TREATMENT , metaSub) 
+
+
+
+
+
+
+#meta$Treatment
+
+#10
+#The voom() function prepares the data for linear modeling by converting counts to logCPM and computing weights for heteroscedasticity adjustment. It also creates a diagnostic plot for the mean-variance trend (Fig. 5C). Visually inspect it for fit. Increase the cutoff for lowly expressed genes to improve fit if necessary.
+
+#metaSub<- meta[c(2,4),]
+#metaSub<- meta[meta$`Id (eppendorf)` %in% c("UPN 1 Ctl","UPN 2 Ctl","UPN 3 Ctl","UPN 1 ON","UPN 2 ON","UPN 3 ON"),]
+#meta$`Sample Id`
+metaSub<- meta[meta$`Sample Id` %in% c("UPN CT","UPN ON","UPN IB","UPN COMBO"),]
+
+#no añado covariable cellline porque solo usamos UPN
+#Tengo que poner sample id porque treatment diferentes...
+#metaSub$`Sample Id`
+design <- model.matrix(~ 0 + `Sample Id`, metaSub) #B
+
+
+
+v <- voom(y, design, plot = TRUE, save.plot = TRUE)
+
+
+#11 fit model
+
+fit <- lmFit(v, design)
+
+
+
+#12
+
+colnames(design)
+#colnames(design) <- gsub("\\+", "_", colnames(design))
+#colnames(design) <- gsub("-", "", colnames(design))
+colnames(design) <- gsub("`Sample Id`", "", colnames(design))
+
+colnames(design)
+
+colnames(design)<- c("ON12300_IBRUTINIB","CONTROL","IBRUTINIB","ON12300")
+
+
+#formula1
+cont.matrix <- makeContrasts(
+  Ibru = IBRUTINIB - CONTROL,
+  Onco = ON12300 - CONTROL,
+  Additive = IBRUTINIB + ON12300 - 2*CONTROL,
+  Combinatorial = ON12300_IBRUTINIB - CONTROL,
+  Synergy = ON12300_IBRUTINIB - IBRUTINIB - ON12300  + 1*CONTROL,
+  levels = design)
+
+
+#13
+
+cont.p <- t(cont.matrix)
+
+#install.packages("GiNA")
+#install.packages("EBImage")
+#library(GiNA)
+library(pheatmap)
+
+h <- pheatmap(cont.p,
+              display_numbers = T, number_format = "%.0f",
+              breaks = seq(-3, 1, by = 0.5),
+              cluster_cols = F, cluster_rows = F)
+
+
+#14
+
+fit.cont <- contrasts.fit(fit, cont.matrix)
+
+
+#15
+
+fit.cont <- eBayes(fit.cont)
+plotSA(fit.cont, main = "Final model: Mean-variance trend", ylab = "Sqrt( standard deviation )")
+
+summa.fit = decideTests(fit.cont, adjust.method = "fdr")
+
+#rownames(fit.cont)
+#mapeo
+#x <- strsplit(rownames(fit.cont), ".", fixed=T)
+#<- c()
+#for (i in 1:dim(gExpr)[[1]]) {
+#  nombreGenes[i] <- x[[i]][1]
+#}
+#fit.cont$genes <- IDs$hgnc_symbol[match(nombreGenes, IDs$ensembl_transcript_id) ]
+
+par(mfrow = c(1, 2))
+for (i in 1:length(colnames(fit.cont$contrasts))){
+  plotMD(fit.cont, coef = i, status = summa.fit[, i], values = c(-1, 1))
+  volcanoplot(fit.cont, coef = i, highlight = 100, 
+              names = rownames(fit.cont))
+}
+
+#Distribucion muy diferente a la de expresion. ¿Demuestra la grafica que no pudo usar datos de fosfo?
+
+
+
+
+#16
+res.list <- list()
+for (i in 1:length(colnames(fit.cont$contrasts))){
+  x <- topTable(fit.cont, coef = i, sort.by = "p", n = Inf, confint = T)
+  res.list[[i]] <- x
+  names(res.list)[i] <- colnames(fit.cont$contrasts)[i]
+}
+
+
+ordered <- res.list[[5]] 
+
+#NINGUNA proteina significativa para sinergia!!!!
+
+#quiza con intensity raw se podria?
+
+
+
+
+
+
+
+#Preguntar JJ y buscar articulos que usen RNA-seq y fosfoproteoma 
+
+#a
+
+
+
+
+
+
+##Representamos genes en heatmap combi vs aditive:
+genesE2F<- c("PSIP1","ASF1B","DUT","POLD1","DSCC1","GINS1","AURKB","E2F8","TFRC","EED","DONSON")
+genesE2F<- c("E2F8","TFRC","EED","DONSON")
+
+log2FC.matrixeE2F <- log2FC.matrix[log2FC.matrix$ID %in% genesE2F,]
+log2FC.matrixeE2F <- log2FC.matrixeE2F[!duplicated(log2FC.matrixeE2F$ID),] #al quitar duplicados paso de 208 a 135
+rownames(log2FC.matrixeE2F)<- log2FC.matrixeE2F$ID
+
+gene <- proteinToGenesMapping$gene_names[proteinToGenesMapping$protein_group %in% ranks0.05$V1]
+
+gene <- gene[!duplicated(gene)]
+
+
+gene <- gene[gene %in% genesE2F]
+
+i <- 2
+library(GiNA)
+for (i in 1:length(levels(log2FC.matrixeE2F$magnitude.syn))){
+  #breaks <- c(seq(-6, -0.3,by=0.1),seq(0.3, 6,by=0.1))
+  #breaks <- append(breaks, -9,0)
+  #breaks <- append(breaks, 9)
+  tmp <- log2FC.matrixeE2F[log2FC.matrixeE2F$magnitude.syn == 
+                         levels(log2FC.matrixeE2F$magnitude.syn)[i],
+                       c("Additive.logFC","Combinatorial.logFC")]
+  
+  if(dim(tmp)[1] > 1){
+  h <- pheatmap(tmp,
+                #kmeans_k = 30, 
+                #annotation_row = rownames(tmp),
+                #cellwidth = 70, cellheight = 5,
+                border_color = NA, 
+                #breaks=breaks,
+                cluster_cols = F,
+                 cluster_rows = F,
+               show_rownames = T,
+                color = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(117),
+                main = paste0("logFC expected vs. measured:\n",
+                              levels(log2FC.matrixeE2F$magnitude.syn)[i]))
+  print(h)
+  }
+}
+
+i
+
+dim(tmp)[1]
+
+
+
+
+```
+
+
+
+
+
+
+
+##GSEA miranda
+
+
+
+
+```{r mirandaGsea}
+
+
+mirandaGsea <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/mirandaGsea.csv", sep = ",")
+
+#mirandaGsea$stat <- as.numeric(mirandaGsea$stat)
+
+#mirandaGsea <- mirandaGsea[mirandaGsea$pvalue < 0.05,c("Gene","stat")]
+
+
+
+
+ranks <- mirandaGsea[order(mirandaGsea$stat ,decreasing = T),]
+
+
+#ranks$stat <- as.numeric(ranks$stat)
+#ranks <- setNames(ranks$stat, ranks$Gene)
+
+write.table(ranks, file="/Users/jparra/Documents/Gael/BTKSinergy/ranksMiranda.rnk", sep='\t', row.names=T, col.names=F)
+
+
+```
+
+
+
+
+
+#Mayan lab tools:
+https://appyters.maayanlab.cloud/#/
+
+
+#To do:
+RNA-seq:
+-Sinergy all cell lines,heatmaps,gsea NARAZA.DONE. muestras muy separadas por linea celular
+
+
+
+- Sinergy UPN, UPNR ibru DONE
+-89-90 GSEA heatmaps images. on aditivo vs combinacion?
+  gsea No lo hace automatico porque no le doy los counts.
+  
+-93 genes names more sin filtro 0.05. Rehacer more.up..-more up 82
+
+
+
+
+Fosfo:
+-105 PCA missing. Preguntar ignasi. MDS     DONE. PCA muestras mezcladas!!!!!
+-107 Gsea,list protein. heatmap con los counts de proteinas.
+Cogemos las proteinas de phosphoproteomics excels y hacemos GSEA DONE.  ProteoRanks1 
+    Enviar nuria resultado GSEA
+
+-109 ibruR DONE
+    Enviar las resitentes tambien
+-111 heatmap Con counts o con aditivo vs combinacion?
+-KEA ibruR. Hacer con resistant y teoria de conjuntos
+-119 heatmap metabolic genes
+La idea seria poner el FC de sinergia para expresion y el FC de proteoma para un gen o lista de genes
+
+
+-En el mds deberian agrupar por tratamiento y no por otra variable. No agrupan, estan todas mezcladas por lo que el tratamiento no es una variable que identifique las muestras. Los resultados son heterogeneos entre muestras no tiene sentido hacer comparaciones porque van a ser no significativas.
+
+
+##ProteoRanks
+
+
+
+
+```{r ProteoRanks1}
+
+#Naraza vs control en UPN
+
+
+#CNvsOncoProteo <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/final_toptables_No_Res (1)OncoVsControl.csv", sep = ",")
+#CNvsOncoProteoSigni <- CNvsOncoProteo[CNvsOncoProteo$P.Value < 0.05,]
+
+CNvsOncoProteo <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_proteome/Total_Proteome_final_TT_NResCNvsControl.csv", sep = ",")
+
+#ranks <- cbind(CNvsOncoProteo$accession, CNvsOncoProteo$logFC)
+ranks <- cbind(CNvsOncoProteo$protein_group, CNvsOncoProteo$logFC)
+ranks<- as.data.frame(ranks)
+ranks$V2 <- as.numeric(ranks$V2)
+#ranks$V4 <- abs(ranks$V3)
+ranks <- ranks[order(ranks$V2,decreasing = T),]
+
+x <- strsplit(ranks$V1, "|", fixed=T)
+
+y<- c()
+for (i in 1:dim(ranks)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+ranks$V1 <- y
+
+write.table(ranks, file="/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/ranks-OncoVsControl-NR-Proteo.rnk", sep='\t', row.names=F, col.names=F)
+
+#resultado gsea toptables
+#file:///C:/Users/jparra/gsea_home/output/jul18/my_analysis.GseaPreranked.1692615068526/index.html
+#Ninguna ruta significativa
+#Muchos repetidos
+
+
+
+#resultado gsea
+#file:///C:/Users/jparra/gsea_home/output/jul18/my_analysis.GseaPreranked.1693307440366/index.html
+
+
+
+
+
+#Con significativos
+
+
+CNvsOncoProteoSigni <- CNvsOncoProteo[CNvsOncoProteo$P.Value < 0.05,]
+
+ranks <- cbind(CNvsOncoProteoSigni$protein_group, CNvsOncoProteoSigni$logFC)
+ranks<- as.data.frame(ranks)
+ranks$V2 <- as.numeric(ranks$V2)
+#ranks$V4 <- abs(ranks$V3)
+ranks <- ranks[order(ranks$V2,decreasing = T),]
+
+x <- strsplit(ranks$V1, "|", fixed=T)
+
+y<- c()
+for (i in 1:dim(ranks)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+ranks$V1 <- y
+
+write.table(ranks, file="/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/ranks-OncoVsControl-NR-Proteo-Signi.rnk", sep='\t', row.names=F, col.names=F)
+
+#resultado gsea toptables
+#file:///C:/Users/jparra/gsea_home/output/jul18/my_analysis.GseaPreranked.1692615388209/index.html
+#GOBP_REGULATION_OF_MRNA_METABOLIC_PROCESS,	GOBP_REGULATION_OF_MRNA_CATABOLIC_PROCESS       Down 
+#GOBP_HISTONE_MODIFICATION ,	GOCC_ORGANELLE_SUBCOMPARTMENT      UP
+
+
+#resultado gsea error
+
+```
+
+
+
+
+
+```{r fosfoRanks1}
+
+#Naraza vs control en UPN resistant!
+
+
+CNvsOncoProteo <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_Proteome_final_TT_ResOncoVsControl.csv", sep = ",")
+#CNvsOncoProteoSigni <- CNvsOncoProteo[CNvsOncoProteo$P.Value < 0.05,]
+
+
+ranks <- cbind(CNvsOncoProteo$protein_group, CNvsOncoProteo$Fold_Change)
+#ranks <- cbind(CNvsOncoProteo$gene_names, CNvsOncoProteo$Fold_Change)
+ranks<- as.data.frame(ranks)
+ranks$V2 <- as.numeric(ranks$V2)
+#ranks$V4 <- abs(ranks$V3)
+ranks <- ranks[order(ranks$V2,decreasing = T),]
+
+#x <- strsplit(ranks$V1, "|", fixed=T)
+#y<- c()
+#for (i in 1:dim(ranks)[[1]]) {
+#  y[i] <- x[[i]][1]
+#}
+#ranks$V1 <- y
+
+
+write.table(ranks, file="/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/ranks-OncoVsControl-R-Proteo.rnk", sep='\t', row.names=F, col.names=F)
+
+#resultado gsea
+#file:///C:/Users/jparra/gsea_home/output/jul18/my_analysis.GseaPreranked.1692696389988/index.html
+
+#muchisimas significativas y mas en regulacion positiva
+
+
+
+
+#Con significativos
+
+
+CNvsOncoProteoSigni <- CNvsOncoProteo[CNvsOncoProteo$P.Value < 0.1,]
+
+ranks <- cbind(CNvsOncoProteoSigni$protein_group, CNvsOncoProteoSigni$Fold_Change)
+ranks<- as.data.frame(ranks)
+ranks$V2 <- as.numeric(ranks$V2)
+#ranks$V4 <- abs(ranks$V3)
+ranks <- ranks[order(ranks$V2,decreasing = T),]
+
+write.table(ranks, file="/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/ranks-OncoVsControl-R-Proteo-Signi.rnk", sep='\t', row.names=F, col.names=F)
+
+#resultado gsea
+#file:///C:/Users/jparra/gsea_home/output/jul18/my_analysis.GseaPreranked.1692615388209/index.html
+#Con 0.05 erorr porque ningun geneSet pasa el thresold, si bajo los gens minimos a 2 aparecen 3 ruta significativas pero tampoco me gustan mucho.
+#Con 0.1 tampoco sale nada interesante.
+
+
+
+
+```
+
+
+
+
+
+
+```{r comunes}
+
+library(tidyverse) #read_tsv
+ResitantDown <- read_tsv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_proteome/332ProteoSinergiResistantDown.tsv")
+
+#Top200 <- Mino1vsMino2$NAME[1:200]
+
+ResitantDown <- ResitantDown[ResitantDown$`FDR q-val` < 0.05,]
+
+
+NoResitantDown <- read_tsv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_proteome/37DownProteoSinergiNR.tsv")
+
+
+NoResitantDown <- NoResitantDown[NoResitantDown$`FDR q-val` < 0.05,]
+
+
+
+commonsDown <- ResitantDown[ResitantDown$NAME %in% NoResitantDown$NAME,]  #Ninguna en comun!!
+
+
+
+
+ResitantUp <- read_tsv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_proteome/45ProteoSinergiResistant.tsv")
+ResitantUp <- ResitantUp[ResitantUp$`FDR q-val` < 0.05,]
+
+NoResitantUp <- read_tsv("/Users/jparra/Documents/Gael/BTKSinergy/proteomics/proteomics_onconova/Total_proteome/28UPProteoSinergiNR.tsv")
+NoResitantUp <- NoResitantDown[NoResitantDown$`FDR q-val` < 0.05,]
+
+commonsUp <- ResitantUp[ResitantUp$NAME %in% NoResitantUp$NAME,]  #UNA en comun!!
+
+
+
+
+
+```
+
+
+
+
+
+for (i in 1:length(levels(h3$magnitude.syn))){
+  #breaks <- c(seq(-6, -0.3,by=0.1),seq(0.3, 6,by=0.1))
+  #breaks <- append(breaks, -9,0)
+  #breaks <- append(breaks, 9)
+  tmp <- h3[h3$magnitude.syn == 
+                         levels(h3$magnitude.syn)[i],
+                       c("Onco.logFC","Ibru.logFC","Additive.logFC","Combinatorial.logFC","Synergistic.logFC")]
+  if(dim(tmp)[1] > 1){
+  h <- pheatmap(tmp,
+                #kmeans_k = 30, 
+                #annotation_row = rownames(tmp) ,
+                #cellwidth = 70, cellheight = 5,
+                border_color = NA, 
+                #breaks=breaks,
+                cluster_cols = F,
+                cluster_rows = F,
+                show_rownames = T,
+                color = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(117),
+                main = paste0("logFC expected vs. measured:\n",
+                              levels(h3$magnitude.syn)[i]))
+  print(h)
+  }
+}
+
+
+#Con los datos de fosfo podria normalizar el raw data y hacer una regresion lineal y ver si me salen lo sp.valores yFC parecidos a los del excel.

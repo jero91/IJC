@@ -1,0 +1,490 @@
+---
+title: "sinergiaLinfoma"
+author: "Jeronimo Parra"
+date: "7/12/2023"
+output: html_document
+---
+
+## Estudia sinergia en linfoma 
+
+# Onconova + ibrutinib
+
+# 1. Creamos objeto "IDs" con nombres de genes y transritos para mapear con libreria Biomart.
+
+```{r biomart, include=FALSE}
+
+
+countsFinal <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/countsFinalAll.csv", sep = ",")
+meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+library(biomaRt)
+# listMarts()
+
+mart <- useMart(biomart = "ensembl", dataset = "hsapiens_gene_ensembl")
+
+x <- strsplit(rownames(countsFinal), ".", fixed=T)
+
+y<- c()
+for (i in 1:194142) {
+  y[i] <- x[[i]][1]
+}
+
+#listAttributes(mart)
+IDs <- getBM(attributes = c("ensembl_transcript_id","hgnc_symbol","hgnc_id","transcript_is_canonical","definition_1006"),
+                 filters = "ensembl_transcript_id", values = y,mart = mart) # Obtengo duplicados
+
+
+
+
+#FUNCION power.compare.logFC
+power.compare.logFC <- function( sig1, sig2, N, N_other = c(2,4,6,8,10), alpha = 0.05, n_tests = 20000){
+  d <- seq(0, 3, length.out=1000)
+  alpha_multiple <- alpha / n_tests
+  df <- lapply( N_other/N, function(n_scale){
+    sigSq <- (sig1^2 + sig2^2) / n_scale
+    cutoff <- qnorm( alpha_multiple/2, 0, sd = sqrt(sigSq), lower.tail = FALSE)
+    p1 <- pnorm(-1*cutoff, d, sqrt(sigSq))
+    p2 <- 1-pnorm(cutoff, d, sqrt(sigSq))
+    data.frame(n_scale, d, power=p1+p2)
+  })
+  df <- do.call("rbind", df)
+  ggplot(df, aes(d, power, color = as.factor(n_scale*N))) + 
+    geom_line() + 
+    theme_bw(14) + 
+    theme(aspect.ratio = 1, plot.title = element_text(hjust = 0.5)) + 
+    ylim(0, 1) + 
+    scale_color_discrete("Samples") + 
+    xlab(bquote(abs(logFC[observed] - logFC[expected]))) + 
+    ggtitle("Power versus difference in logFC")
+}
+
+```
+
+# 2. Sinergia
+
+```{r sinergia, echo=T}
+
+#samplesNames <- c("UPN1","UPN2","UPN3","UPN4","UPN5","UPN6","UPNRES1","UPNRES2","UPNRES3","UPNRES4","UPNRES5","UPNRES6")
+
+#counts  <-   countsFinal[,match(samplesNames ,colnames(countsFinal))]
+counts  <-   countsFinal
+
+#Empezamos con este numero de trascritos y muestras:
+dim(counts)
+
+meta <- read.csv("/Users/jparra/Documents/Gael/BTKSinergy/metadata_onconova.csv", row.names = 1)
+
+#metaSub  <-   meta[match(samplesNames ,meta$ID),]
+metaSub  <-   meta
+
+row.names(metaSub) <- metaSub$ID
+metaSub <- metaSub[match(colnames(counts), row.names(metaSub)), ]
+
+#6
+library(edgeR)
+plot(cpm(counts)[, 1], counts[, 1], ylim = c(0, 50), xlim = c(0, 3))
+abline(h = 10, col = "red")
+abline(v = 0.25, col = "red")
+
+
+keep <- rowSums(cpm(counts[]) > 0.25) >= 4
+#keep <- rowSums(cpm(counts[]) > 0.25) >= 4
+
+#keep <- rowSums(counts(dds)) > 1
+
+gExpr <- counts[keep, ]
+
+#Tras eliminar los transcritos que tienen menos de 0.15 en mas de 4 muestras nos quedamos con:
+dim(gExpr)
+
+
+#7
+y <- DGEList(gExpr)
+y <- calcNormFactors(y)
+
+
+#8
+
+#BiocManager::install("chroGPS")
+#library(chroGPS)
+#install.packages("mds")
+
+
+library(stats)
+plotMDS(y)
+
+#Añadir PCA. UPNRES5 outlier?
+
+#9
+#Vemos que las muestras agrupan por linea celular por lo que añadimos al diseño como covariable.
+
+design <- model.matrix(~ 0 + TREATMENT  + CELL.LINE, metaSub) #B
+
+#ajustamos nombres de las columnas
+colnames(design)
+colnames(design) <- gsub("\\+", "_", colnames(design))
+colnames(design) <- gsub("-", "", colnames(design))
+colnames(design) <- gsub("TREATMENT", "", colnames(design))
+colnames(design)
+
+
+
+#10
+#The voom() function prepares the data for linear modeling by converting counts to logCPM and computing weights for heteroscedasticity adjustment. It also creates a diagnostic plot for the mean-variance trend (Fig. 5C). Visually inspect it for fit. Increase the cutoff for lowly expressed genes to improve fit if necessary.
+v <- voom(y, design, plot = TRUE, save.plot = TRUE)
+#Un poco diferente al del articulo.
+
+
+#11 fit model
+
+fit <- lmFit(v, design)
+
+
+
+#12
+
+colnames(design)
+
+#formula1
+cont.matrix <- makeContrasts(
+  Ibru = IBRUTINIB - CONTROL,
+  Onco = ON12300 - CONTROL,
+  Additive = IBRUTINIB + ON12300 - 2*CONTROL,
+  Combinatorial = ON12300_IBRUTINIB - CONTROL,
+  Synergy = ON12300_IBRUTINIB - IBRUTINIB - ON12300  + 1*CONTROL,
+  levels = design)
+
+
+#13
+
+cont.p <- t(cont.matrix)
+
+#install.packages("GiNA")
+#install.packages("EBImage")
+#library(GiNA)
+library(pheatmap)
+
+h <- pheatmap(cont.p,
+              display_numbers = T, number_format = "%.0f",
+              breaks = seq(-3, 1, by = 0.5),
+              cluster_cols = F, cluster_rows = F)
+
+
+
+#14
+
+fit.cont <- contrasts.fit(fit, cont.matrix)
+
+
+#15
+
+fit.cont <- eBayes(fit.cont)
+plotSA(fit.cont, main = "Final model: Mean-variance trend", ylab = "Sqrt( standard deviation )")
+
+summa.fit = decideTests(fit.cont, adjust.method = "fdr")
+
+
+#mapeo
+x <- strsplit(rownames(fit.cont), ".", fixed=T)
+nombreGenes<- c()
+for (i in 1:dim(gExpr)[[1]]) {
+  nombreGenes[i] <- x[[i]][1]
+}
+fit.cont$genes <- IDs$hgnc_symbol[match(nombreGenes, IDs$ensembl_transcript_id) ]
+
+par(mfrow = c(1, 2))
+for (i in 1:length(colnames(fit.cont$contrasts))){
+  plotMD(fit.cont, coef = i, status = summa.fit[, i], values = c(-1, 1))
+  volcanoplot(fit.cont, coef = i, highlight = 100, 
+              names = fit.cont$genes)
+}
+
+
+
+#16
+res.list <- list()
+for (i in 1:length(colnames(fit.cont$contrasts))){
+  x <- topTable(fit.cont, coef = i, sort.by = "p", n = Inf, confint = T)
+  res.list[[i]] <- x
+  names(res.list)[i] <- colnames(fit.cont$contrasts)[i]
+}
+
+
+
+
+
+
+
+
+
+
+```
+
+
+#3. OBTENEMOS ranks para GSEA
+
+```{r ranks, echo=T}
+
+
+
+ordered <- res.list[[5]] 
+
+
+x <- strsplit(rownames(ordered), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(ordered)[[1]]) {
+  #print(i)
+  y[i] <- x[[i]][1]
+}
+
+
+ordered$ID <-y
+
+ranks <- cbind(ordered$t, ordered$ID,ordered$logFC,ordered$P.Value)
+
+ranks<- as.data.frame(ranks)
+ranks$V3 <- as.numeric(ranks$V3)
+ranks$V1 <- as.numeric(ranks$V1)
+ranks <- na.omit(ranks)
+
+#ranks$V5 <- IDs$hgnc_symbol[match(ranks$V2,IDs$ensembl_transcript_id)]
+
+#ranks0.05 <- ranks[ranks$V4 < 0.05,]
+ranks0.05 <- ranks
+
+ranks0.05 <- ranks0.05[!ranks0.05$V2 %in% "",]
+
+#ranks0.05 <-as.data.frame(cbind(ranks0.05$V5, ranks0.05$V1))   #t
+
+ranks0.05 <-as.data.frame(cbind(ranks0.05$V2, ranks0.05$V1))   #t
+
+
+#Guardamos el objeto ranks que contiene la siguiente cantidad de genes: 
+dim(ranks0.05)
+write.table(ranks0.05, file="/Users/jparra/Documents/Gael/BTKSinergy/ranksSinergyAllonco.rnk", sep='\t', row.names=F, col.names=F)
+
+
+#Resultado GSEA con biocarta,kegg,reactome,BP,CC,hallmark: 
+#file:///C:/Users/jparra/gsea_home/output/jul18/my_analysis.GseaPreranked.1693298813605/index.html
+
+
+
+
+
+#filtrando por p value de sinergia.
+
+ranks0.05 <- ranks[ranks$V4 < 0.05,]
+
+ranks0.05 <- ranks0.05[!ranks0.05$V2 %in% "",]
+
+#ranks0.05 <-as.data.frame(cbind(ranks0.05$V5, ranks0.05$V1))   #t
+
+ranks0.05 <-as.data.frame(cbind(ranks0.05$V2, ranks0.05$V1))   #t
+
+
+#Guardamos el objeto ranks que contiene la siguiente cantidad de genes: 
+dim(ranks0.05)
+write.table(ranks0.05, file="/Users/jparra/Documents/Gael/BTKSinergy/ranks05SinergyAllonco.rnk", sep='\t', row.names=F, col.names=F)
+
+
+#Resultado GSEA con biocarta,kegg,reactome,BP,CC,hallmark: 
+#file:///C:/Users/jparra/gsea_home/output/jul18/my_analysis.GseaPreranked.1693299374570/index.html
+
+```
+
+
+
+#4. heatmaps aditivo vs combinacion
+
+```{r heatmaps, echo=T}
+
+
+
+
+res.list$Additive$ID <- rownames(res.list$Additive)
+res.list$Combinatorial$ID <- rownames(res.list$Combinatorial)
+res.list$Synergy$ID <- rownames(res.list$Synergy)
+
+colnames(res.list$Additive)
+log2FC.matrix <- Reduce(function(x,y) merge(x,y,by="ID", all = F),  list(res.list$Additive[,c("ID","logFC","t","P.Value")], res.list$Combinatorial[,c("ID","logFC","t","P.Value")], res.list$Synergy[,c("ID","logFC","t","P.Value")]))
+
+
+
+
+
+colnames(log2FC.matrix)
+## [1] "ensembl"   "Gene_name" "logFC.x"   "P.Value.x" "logFC.y"   "P.Value.y"
+## [7] "logFC"     "P.Value"
+
+
+colnames(log2FC.matrix) <- c("ID","Additive.logFC", "Additive.t" ,"Additive.pvalue","Combinatorial.logFC", "Combinatorial.t", "Combinatorial.pvalue","Synergistic.logFC", "Synergistic.t", "Synergistic.pvalue")
+
+#Add a column assigning synergistic categories to each gene using the categorize.synergy() function, which takes the previously created matrix and the expression cutoff into account.
+categorize.synergy <- function(logFCmatrix, meanSE){
+  m <- logFCmatrix
+  m$magnitude.syn <- NA
+  for (i in 1:length(m$ID)){
+    if (m$Synergistic.logFC[i] > meanSE){
+      if (m$Additive.logFC[i] < -meanSE){
+        if (m$Combinatorial.logFC[i] > meanSE){
+          m$magnitude.syn[i] = "more.up"
+        } else m$magnitude.syn[i] = "less.down"
+      } else m$magnitude.syn[i] = "more.up"
+    }
+    else if (m$Synergistic.logFC[i] < -meanSE){
+      if (m$Additive.logFC[i] > meanSE){
+        if (m$Combinatorial.logFC[i] < -meanSE){
+          m$magnitude.syn[i] = "more.down"
+        } else m$magnitude.syn[i] = "less.up"
+      } else m$magnitude.syn[i] = "more.down"
+    } else m$magnitude.syn[i] = "same"
+  }
+  m$magnitude.syn <- as.factor(m$magnitude.syn)
+  return(m)
+}
+
+SE <- sqrt(fit.cont$s2.post) * fit.cont$stdev.unscaled
+meanSE = mean(SE[,c(1,2,3,4,5)])
+
+log2FC.matrix <- categorize.synergy(log2FC.matrix, meanSE)
+
+
+#mapeo
+
+rownames(log2FC.matrix) <- log2FC.matrix$ID
+x <- strsplit(rownames(fit.cont), ".", fixed=T)
+
+y<- c()
+for (i in 1:dim(gExpr)[[1]]) {
+  y[i] <- x[[i]][1]
+}
+log2FC.matrix$ID <- IDs$hgnc_symbol[match(y, IDs$ensembl_transcript_id) ]
+
+log2FC.matrix$description <- IDs$definition_1006[match(y, IDs$ensembl_transcript_id) ]
+
+
+#write.table(log2FC.matrix, file="/Users/jparra/Documents/Gael/BTKSinergy/log2FC.matrix.csv", sep=',', row.names=T, col.names=T)
+
+
+log2FC.matrixSigni <- log2FC.matrix[log2FC.matrix$Synergistic.pvalue < 0.05,]
+
+#log2FC.matrixSigni <- log2FC.matrixSigni[log2FC.matrixSigni$Additive.pvalue < 0.05,]
+#log2FC.matrixSigni <- log2FC.matrixSigni[log2FC.matrixSigni$Combinatorial.pvalue < 0.05,]
+
+x <- strsplit(log2FC.matrixSigni$ID, ".", fixed=T)
+y<- c()
+for (i in 1:dim(log2FC.matrixSigni)[[1]]) {
+  y[i] <- x[[i]][1]
+}
+
+
+
+
+#Creamos tabla con descripcion genes
+#log2FC.matrix
+
+x <- strsplit(rownames(log2FC.matrix), ".", fixed=T)
+
+
+
+
+
+log2FC.matrixSigni <- log2FC.matrixSigni[!duplicated(log2FC.matrixSigni$ID),]
+log2FC.matrixSigni <- log2FC.matrixSigni[!log2FC.matrixSigni$ID %in% "",]
+#rownames(log2FC.matrixSigni) <- log2FC.matrixSigni$ID
+
+
+library(GiNA)
+for (i in 1:length(levels(log2FC.matrixSigni$magnitude.syn))){
+  breaks <- c(seq(-6, -0.3,by=0.1),seq(0.3, 6,by=0.1))
+  breaks <- append(breaks, -9,0)
+  breaks <- append(breaks, 9)
+  tmp <- log2FC.matrixSigni[log2FC.matrixSigni$magnitude.syn == 
+                         levels(log2FC.matrixSigni$magnitude.syn)[i],
+                       c("Additive.logFC","Combinatorial.logFC")]
+  h <- pheatmap(tmp,
+                #kmeans_k = 30, 
+                #annotation_row = rownames(tmp),
+                #cellwidth = 70, cellheight = 5,
+                border_color = NA, 
+                breaks=breaks,
+                cluster_cols = F,
+                show_rownames = T,
+                color = colorRampPalette(rev(brewer.pal(n=9, name="RdBu")))(117),
+                main = paste0("logFC expected vs. measured:\n",
+                              levels(log2FC.matrixSigni$magnitude.syn)[i]))
+  print(h)
+}
+
+
+
+
+genes.per.category<- as.data.frame(table(log2FC.matrixSigni$magnitude.syn))
+print(genes.per.category)
+
+library(ggplot2)
+library(wesanderson)
+zissou <- wes_palette("Zissou1", 6, type = "continuous")
+
+q <- ggplot(genes.per.category, aes(x = "", y = Freq, fill = Var1)) +
+  geom_col() +
+  coord_polar("y", start=0) + 
+  scale_fill_manual(values=zissou) +
+  theme_void()
+#pdf(paste0("results/", experiment.title, "-8_synergy-categories_pie-chart.pdf"))
+print(q)
+
+#write.table(log2FC.matrixSigni, file="/Users/jparra/Documents/Gael/BTKSinergy/genesSinergiaDescriptionOncoIbru.csv", sep=',', row.names=T, col.names=T)
+
+
+
+
+
+#Synergy score:
+
+library(qvalue)
+synergy.pvalues <- res.list$Synergy$P.Value
+pi1 <- 1 - qvalue(synergy.pvalues)$pi0
+print(pi1)
+
+plot.new()+
+text(0.4,0.75,labels=paste0("\n",round(pi1 * 100, 2), 
+                            "% non-null \np-values and \n", 
+                            round(sum(res.list$Synergy$P.Value < 0.1) *
+                                    100/length(res.list$Synergy$ID), 2), 
+                            " % of genes with \nsynergy FDR < 0.1"))
+
+
+FDR <- p.adjust(res.list$Synergy$P.Value, method="BH")
+
+hist(synergy.pvalues)
+
+
+
+#synergy power
+SE <- sqrt(fit.cont$s2.post) * fit.cont$stdev.unscaled
+
+sig1 <- median(SE[,"Additive"])
+sig2 <- median(SE[,"Combinatorial"])
+g <- power.compare.logFC(sig1, sig2, N = 4, N_other = c(4, 6, 8, 10, 14,20,27), 
+                         alpha = 0.05, n_tests = 20000)
+print(g)
+
+
+
+
+#Representamos genes en heatmap combi vs aditive:
+
+
+#genesG2<- c("PSIP1","ASF1B","DUT","POLD1","DSCC1","GINS1","AURKB","E2F8","TFRC","EED","DONSON")
+
+
+
+
+
+```
+
+
+
+
