@@ -1,0 +1,435 @@
+---
+title: "Rayca Evaluation Task"
+author: "Jeronimo Parra"
+date: "28/12/2023"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+## Single Cell Report
+Here we have a example of the single cell analisis of 6 samples from prostate from mouse. I would do the cell ranger execution in a process in nextflow in order to execute in HPC and the upload the h5 data to analice nad visualice in R, calling a Rmarkdown also with nextflow.
+
+I made this analisys at my actual work as a single cell analisys service which we provide to another reserch center.
+I remove some details about the samples and conclusion in order to not share any sensible data.
+This analisys was not designed for trayectory analisys but I add some at the end.
+
+
+```{r one, include=FALSE}
+
+#install.packages("xfun")
+library(xfun)
+#Seurat:
+library(Seurat)
+#install.packages("hdf5r")
+library(hdf5r)
+
+data1 <- Read10X_h5("/Users/jparra/Documents/single cell/mouseData/aCompartir/L217Jero/filtered_feature_bc_matrix.h5")
+data2 <- Read10X_h5("/Users/jparra/Documents/single cell/mouseData/aCompartir/L218Jero/filtered_feature_bc_matrix.h5")
+data3 <- Read10X_h5("/Users/jparra/Documents/single cell/mouseData/aCompartir/L219Jero/filtered_feature_bc_matrix.h5")
+
+#2ª secuenciacion
+
+data4 <- Read10X_h5("/Users/jparra/Documents/single cell/segundaSecuenciacion/aCompartir/L502outs/outs/filtered_feature_bc_matrix.h5")
+data5 <- Read10X_h5("/Users/jparra/Documents/single cell/segundaSecuenciacion/aCompartir/L545outs/outs/filtered_feature_bc_matrix.h5")
+data6 <- Read10X_h5("/Users/jparra/Documents/single cell/segundaSecuenciacion/aCompartir/L546outs2/outs/filtered_feature_bc_matrix.h5")
+
+
+# create Seurat object
+data1 <- CreateSeuratObject(counts = data1)
+data2 <- CreateSeuratObject(counts = data2)
+data3 <- CreateSeuratObject(counts = data3)
+data4 <- CreateSeuratObject(counts = data4)
+data5 <- CreateSeuratObject(counts = data5)
+data6 <- CreateSeuratObject(counts = data6)
+
+
+#Unimos las muestras
+
+data1$sample <- "BRCA"
+data2$sample <- "NSD2"
+data3$sample <- "NP"
+data4$sample <- "KRAS_3M"
+data5$sample <- "NPp53 NSD2"
+data6$sample <- "Npp53 RANK"
+
+#QC
+data1[["percent.mt"]] <- PercentageFeatureSet(data1, pattern = "^mt-")
+data2[["percent.mt"]] <- PercentageFeatureSet(data2, pattern = "^mt-")
+data3[["percent.mt"]] <- PercentageFeatureSet(data3, pattern = "^mt-")
+data4[["percent.mt"]] <- PercentageFeatureSet(data4, pattern = "^mt-")
+data5[["percent.mt"]] <- PercentageFeatureSet(data5, pattern = "^mt-")
+data6[["percent.mt"]] <- PercentageFeatureSet(data6, pattern = "^mt-")
+
+#Porcentaje de mitocondrial es 0 porque la funcion PercentageFeatureSet() funciona para humanos, en nuestro caso(raton) debemos ajustar y ponerlo en minuscula.
+
+
+dataRaw <- merge(data1, y = data2, add.cell.ids = c("data1", "data2"), project = "Trymerging")
+dataRaw <- merge(data3, y = dataRaw, add.cell.ids = c("data3", "dataRaw"), project = "Trymerging")
+dataRaw <- merge(data4, y = dataRaw, add.cell.ids = c("data4", "dataRaw"), project = "Trymerging")
+dataRaw <- merge(data5, y = dataRaw, add.cell.ids = c("data5", "dataRaw"), project = "Trymerging")
+dataRaw <- merge(data6, y = dataRaw, add.cell.ids = c("data6", "dataRaw"), project = "Trymerging")
+#View(head(data@meta.data))  #V mayuscula
+
+
+#Estaria bien calcular en que porcentaje de mitocondrial me quedo con un % especifico de las celulas para estandarizar??
+
+
+#Con logaritmos en base 10
+#dataRaw$nFeature_RNALog <- log10(dataRaw$nFeature_RNA)
+#dataRaw$nCount_RNALog <- log10(dataRaw$nCount_RNA)
+#dataRaw$percent.mtLog <- log10(dataRaw$percent.mt)
+  
+
+#VlnPlot(dataRaw, features = c("nFeature_RNALog", "nCount_RNALog", "percent.mt"), ncol = 3, group.by = "sample")
+
+
+
+#saveRDS(dataRaw,"/Users/jparra/Documents/single cell/mouseData/dataRaw.rds")
+
+  
+```
+
+
+
+```{r one.2, echo=FALSE}
+
+VlnPlot(dataRaw, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 6, group.by = "sample")
+
+
+  
+```
+
+Violin plot of raw data. For every sample we can see the distribution of the values of the variables nFeatures(number of genes by cell), nCount( number of count by cell) and percent.mt which is the mitocondrial RNA percetange found by cell 
+
+
+
+
+```{r one.3, echo=FALSE}
+
+#dataRaw <- readRDS("/Users/jparra/Documents/single cell/mouseData/dataRaw.rds")
+
+    
+#Marta Casado
+   # plot(density(dataRaw$nFeature_RNA)) + abline(v = 1000)
+
+#pdf(file = here::here("plots", analysis, "n_feature_density.pdf"))
+
+#dev.off()
+
+#subsetting
+
+data <- subset(dataRaw, subset = nFeature_RNA > 100 & percent.mt < 25)
+
+VlnPlot(data, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 6, group.by = "sample")
+
+
+```
+
+After filtering by number of genes by cell(nFeatures) higher than 100 and by mitocondrial percentage lower than 25
+
+
+```{r one.4, include=FALSE}
+
+
+
+#Normalizacion
+
+  data <- NormalizeData(data, normalization.method = "LogNormalize", scale.factor = 10000)
+  
+  summary(Matrix::colSums(data@assays$RNA@counts[,]>0))
+
+  data <- FindVariableFeatures(data, selection.method = "vst", nfeatures = 2000)   #nfeatures es el resultado de la media de features(linea anterior).
+  #VariableFeaturePlot(data)
+
+
+#Escalado
+    all.genes <- rownames(data)
+  data <- ScaleData(data, features = all.genes)
+  
+  data <- RunPCA(data, features = VariableFeatures(object = data))
+  
+ # ElbowPlot(data)
+  data <- FindNeighbors(data, dims = 1:20)  #Ponemos 14 aqui por que en el resultado de elbowplot a partir de 14 apenas baja mas.  Lo mismo que UMAP!!!!
+  
+  
+  
+ # remove.packages("Matrix")
+ # install.packages("Matrix")
+ # BiocManager::install("rapport")
+
+  
+  #clustering
+   # data <- FindClusters(data, resolution = 0.5) #21 comunidades con resolucion 0.5, la bajamos para ver menos grupos.
+    
+        data <- FindClusters(data, resolution = 0.1) #con un valor de 0.1 de resolucion  obtengo 11 clusters.
+        
+
+  data <- RunUMAP(data, dims = 1:20) #Ponemos 14 aqui tb????
+  
+```
+
+
+
+## Find cluster and markers.
+
+
+
+```{r two, echo=FALSE}
+
+
+
+DimPlot(data, reduction = "umap",raster=FALSE, group.by = "sample")   #Me saca 21 cluster
+
+
+  
+  
+
+    
+#saveRDS(data, "/Users/jparra/Documents/single cell/mouseData/data.rds")
+#saveRDS(markers, "/Users/jparra/Documents/single cell/mouseData/markers.rds")
+    
+    
+    
+
+
+    
+    
+    
+```
+
+In this graph(UMAP) every point is a cell and each colour is a different samples. The position in the graph it’s depend on the expression of the cell, then all the similar cell should cluster together.
+Here we can see the 3 samples integration it’s very good, the population of the samples are similar, which is a good indicator of the quality.
+
+
+```{r two.2, echo=FALSE}
+
+
+
+DimPlot(data, reduction = "umap",raster=FALSE)   #Me saca 21 cluster
+
+  
+
+  
+```
+
+In this UMAP we calculate and represent the clustering of the cells. Each group should represent a different cellular type or subtype.
+We found 11 cluster at this level of resolution(0.1).
+
+
+
+
+```{r two.3, echo=FALSE}
+
+DimPlot(data, reduction = "umap",raster=FALSE, label = TRUE, pt.size = 0.5, split.by =   "sample", ncol = 2)  
+
+
+
+  
+```
+
+It’s the same representation than before but split by sample, here we can see in the sample NSD2 there are more cells of the cluster 0 and less of the cluster 1. But all of the are consistent.
+
+
+
+
+
+
+```{r two.4, echo=FALSE}
+
+
+VlnPlot(data, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3, group.by = "seurat_clusters")
+
+  
+```
+
+
+
+Now we represent the features, counts and mitochondrial.percent by cluster. We can see the cluster 10(red circle) has very few genes by cells, it must be a technical noise. All other cluster looks good enough.
+
+
+
+
+
+## Mouse SC
+
+
+```{r three.0, include=FALSE}
+
+
+
+  markers <- FindAllMarkers(data, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+
+
+  #Punto control
+  
+  #  data <- readRDS("/Users/jparra/Documents/single cell/mouseData/data.rds")
+# markers <- readRDS("/Users/jparra/Documents/single cell/mouseData/markers.rds")
+
+  
+  clusters.ref <- as.vector(unique(Idents(data)))
+  
+library("matchSCore2")
+markers2 <- cut_markers(clusters = clusters.ref, markers = markers, ntop = 100)
+  
+  
+#   saveRDS(markers2, "/Users/jparra/Documents/single cell/mouseData/markers2.rds")
+#  markers2 <- readRDS("/Users/jparra/Documents/single cell/mouseData/markers2.rds")
+
+
+
+##heatmap markers.
+  library(dplyr)    
+markers %>%
+    group_by(cluster) %>%
+    top_n(n = 5, wt = avg_log2FC) -> top5
+  
+```
+
+
+```{r three, echo=FALSE}
+
+
+DoHeatmap(data, features = top5$gene) + NoLegend()
+
+#top5$gene = toupper(top5$gene)
+
+#top5$gene[top5$gene %in% "Thy-1"]
+
+    
+#Umap por muestras
+
+
+
+ #DimPlot(data, reduction = "umap",raster=FALSE, group.by = "sample")   #Me saca 21 cluster
+
+
+
+#Resolucion 0.01
+
+
+#data <- FindClusters(data, resolution = 0.01) #con un valor de 0.1 de resolucion  obtengo 11 clusters.
+        
+
+  #data <- RunUMAP(data, dims = 1:10) #Marta pondria 20
+  
+#DimPlot(data, reduction = "umap",raster=FALSE, label = TRUE, pt.size = 0.5)   #Me saca 11 cluster
+
+
+  
+#DimPlot(data, reduction = "umap",raster=FALSE, label = TRUE, pt.size = 0.5, split.by =   "sample")   #Me saca 6 cluster
+
+
+  #markers001 <- FindAllMarkers(data, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+
+  
+
+
+
+
+
+    
+  
+```
+
+In this heatmap we can see the top 5 genes differentially expressed by cluster.
+In the next slides we can see the expression of this genes in the UMAP representation.
+
+
+Cluster0
+
+```{r three.2, echo=FALSE}
+
+
+ FeaturePlot(data,ncol=2, features = c("Pid1","Mrc1","Lyz2","F13a1","Ccl8")) 
+
+
+  
+```
+
+
+Cluster1
+
+```{r three.32, echo=FALSE}
+
+
+
+
+ FeaturePlot(data,ncol=2, features = c("S100a9","S100a8","Cxcl2","G0s2","Acod1")) 
+ 
+
+#Cluster2
+ #FeaturePlot(data,ncol=2, features =  top5$gene[6:10]) 
+
+ #FeaturePlot(data,ncol=2, features =  top5$gene[11:15]) 
+ 
+# FeaturePlot(data,ncol=5, features =  top5$gene[16:20]) 
+
+ #FeaturePlot(data,ncol=5, features =  top5$gene[21:25]) #cluster4
+
+# FeaturePlot(data,ncol=5, features =  top5$gene[26:30]) 
+
+ #FeaturePlot(data,ncol=5, features =  top5$gene[31:35]) #cluster6
+ 
+# FeaturePlot(data,ncol=5, features =  top5$gene[36:40]) 
+ 
+ #FeaturePlot(data,ncol=5, features =  top5$gene[41:45]) #cluster8
+ 
+# FeaturePlot(data,ncol=5, features =  top5$gene[46:50]) 
+ 
+ #FeaturePlot(data,ncol=5, features =  top5$gene[51:55]) 
+
+
+
+
+  
+```
+
+
+
+
+#Cell types identification
+Following the paper:Nature. Single cell analysis of cribriform prostate cancer reveals cell intrinsic and tumor microenvironmental pathways of aggressive disease. October 2022
+Using the same markers on this paper and the web app "CellMarker" we can identify our clusters.
+Also we save the most expresed genes in a csv.
+ 
+```{r three.3, echo=FALSE}
+
+
+
+
+
+ 
+  DotPlot(data, features = c("Ptprc","Cd79a", "Ms4a1", "Gnl1","Prf1","Nkg7","Klrd1","Cd3d","Cd3e","Cd3g", "Cd4","C1qa","C1qb","Aif1","Cd68","Lyz1","Lyz2","Il1b", "Fcna","Fcnb","Kit","Tpsb2","Tpsab1","Cpa3",
+                           "Ackr1","Ccl4","Pecam1","Ifi27","Clec14a","Enpp2","Depp1","Rgs5","Acta2","Tagln","Bgn","Lum","Dcn","Igf1",
+                           "Plp1","Mpz","Krt5","Krt7","Krt19","Mmp7","Epcam","Prac1","Hoxb13","Lrrc26","Spdef","Nkx3-1","klk3","Folh1","Schlap1","Pla2g2a","Cetn2","Zmynd10")) + RotatedAxis()
+
+
+
+#Nombres al umap:
+ levels(data)
+ 
+ #levels(data) <- c("5 B cells","3 T cells","2 Myeloide","0 Macrofagos","1 Neutrofilos","8 Dendritic/Natural Killer","6 Fibroblastos","9 Epitelial", "4 Endotelial","7","10" )
+
+  
+ 
+  #Dandole nombre a los cluster
+ new.cluster.ids <- c("0 Neutrophils", "1 Macrophages", "2 T cells ", "3 Myeloid", "4 B cells", "5 Endothelial", "6 Fibroblasts", "7 Epithelial", "8 Natural Killer","9 Hematopoietic stem cell  ")
+ names(new.cluster.ids) <- levels(data)
+ data <- RenameIdents(data, new.cluster.ids)
+ 
+ 
+ DimPlot(data, reduction = "umap", label = TRUE, pt.size = 0.5) + NoLegend()
+ 
+ 
+#Guardamos los genes marcadores de cada cluster 
+ write.table(markers, file="/Users/jparra/Documents/single cell/mouseData/markers.csv", sep=",", row.names=FALSE)
+
+ 
+
+ DimPlot(data, reduction = "umap",raster=FALSE, label = TRUE, pt.size = 0.5, split.by =   "sample", ncol = 2) 
+ 
+
+```
+Trayectory analisis:
+In this last graph we can see hoe certainly cell types change. There are 3 samples with very similar neutrophils between them and very different of the other 3 samples. This happend also with other cell types.
